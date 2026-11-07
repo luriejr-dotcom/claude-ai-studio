@@ -14,6 +14,7 @@ import { budgetHealth, formatCents, HEALTH_LABEL, parseDollarsToCents, percentUs
 import { CategoryIcon, Empty } from "./bits";
 import { ReimbCard } from "./Reimbursements";
 import { cn } from "@/lib/utils";
+import { LoadingRows } from './LoadingRows';
 
 const PILL: Record<Health, string> = {
   green: "bg-success/20 text-success",
@@ -24,10 +25,11 @@ const BAR: Record<Health, string> = { green: "bg-success", yellow: "bg-warning",
 const SEV = { high: 0, medium: 1, low: 2 } as const;
 
 export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: () => void }) {
-  const { data } = useQuery(budgetQuery);
+  const { data, isLoading } = useQuery(budgetQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const { data: tasks = [] } = useQuery(tasksQuery);
   const [edit, setEdit] = useState(false);
+  if (isLoading) return <LoadingRows />;
   if (!data) return null;
   const { semester, txns, flags } = data;
   if (!semester) return <div className="surface"><Empty title="No semester yet" line="Create one to start budgeting." /></div>;
@@ -90,7 +92,7 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
         Red if spent is over budget. Yellow at 80% spent, or if spent plus promised tasks would go over. Otherwise green.
       </p>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3">
         <Stat n={openTasks.length} label="Open tasks" />
         <Stat n={overdue} label="Overdue" warn={overdue > 0} />
         <Stat n={waiting} label="Receipts to check" />
@@ -104,10 +106,10 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
           const diff = c.budget_cents - cs;
           return (
             <div key={c.id} className="surface animate-fade-up p-4" style={{ animationDelay: `${i * 40}ms` }}>
-              <div className="flex items-center gap-2">
+              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
                 <span className="flex size-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground"><CategoryIcon name={c.name} /></span>
-                <span className="font-semibold">{c.name}</span>
-                <span className="ml-auto text-sm text-muted-foreground">{formatCents(cs)} / {formatCents(c.budget_cents)}</span>
+                <span className="truncate font-semibold">{c.name}</span>
+                <span className="col-span-2 text-sm text-muted-foreground">{formatCents(cs)} / {formatCents(c.budget_cents)}</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
                 <div className={cn("h-full rounded-full", BAR[h])} style={{ width: `${Math.min(100, percentUsed(cs, c.budget_cents))}%` }} />
@@ -184,11 +186,11 @@ function FlagRow({ flag }: { flag: { id: string; severity: "high" | "medium" | "
   });
   const sev = { high: "bg-destructive/15 text-destructive", medium: "bg-warning/25", low: "bg-muted text-muted-foreground" }[flag.severity];
   return (
-    <li className="flex items-start gap-3 px-4 py-3">
+    <li className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 px-4 py-3 sm:flex">
       <span className={cn("mt-0.5 rounded-full px-2 py-0.5 text-xs font-semibold capitalize", sev)}>{flag.severity}</span>
-      <p className="flex-1 text-sm">{flag.detail}</p>
+      <p className="min-w-0 flex-1 break-words text-sm">{flag.detail}</p>
       <Popover>
-        <PopoverTrigger asChild><Button size="sm" variant="outline">Mark reviewed</Button></PopoverTrigger>
+        <PopoverTrigger asChild><Button className="col-span-2 justify-self-end shrink-0" size="sm" variant="outline">Mark reviewed</Button></PopoverTrigger>
         <PopoverContent align="end" className="w-72 space-y-2">
           <Label htmlFor={`n-${flag.id}`}>Note (optional)</Label>
           <Textarea id={`n-${flag.id}`} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />

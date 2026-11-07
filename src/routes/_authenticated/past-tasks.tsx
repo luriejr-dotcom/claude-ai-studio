@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { categoriesQuery, isExecRole, meQuery, membersQuery, tasksQuery } from "@/lib/club";
 import { PastTasksList } from "@/components/club/PastTasks";
+import { LoadingRows } from '@/components/club/LoadingRows';
 
 export const Route = createFileRoute("/_authenticated/past-tasks")({
   head: () => ({
@@ -21,10 +22,11 @@ export const Route = createFileRoute("/_authenticated/past-tasks")({
 function PastTasksPage() {
   const navigate = useNavigate();
   const { data: me } = useQuery(meQuery);
-  const { data: tasks = [] } = useQuery(tasksQuery);
+  const { data: tasks = [], isLoading } = useQuery(tasksQuery);
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const exec = isExecRole(me?.role);
+  if (isLoading) return <div className="p-4"><LoadingRows /></div>;
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 pb-20 sm:px-6">
       <header className="py-5">
