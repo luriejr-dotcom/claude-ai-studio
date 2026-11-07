@@ -155,6 +155,15 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
         <input type="file" accept="image/*" capture="environment" className="sr-only" disabled={!!busy || finish.isPending} onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ""; }} />
       </label>
 
+      {paidOwn && (
+        <div className="space-y-1.5">
+          <Label htmlFor="rb-method">How would you like to be reimbursed?</Label>
+          <select id="rb-method" className="h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm" value={preferredMethod} onChange={(e) => { const value = e.target.value; setPreferredMethod(isRepaymentMethod(value) ? value : ""); }}>
+            <option value="">Pick a method</option>
+            {Object.entries(METHOD_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </div>
+      )}
       {f && !busy && (
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Step 2 · Is everything correct?</div>
@@ -186,15 +195,6 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
                 ))}
               </div>
             </fieldset>
-          )}
-          {paidOwn && (
-            <div className="space-y-1.5">
-              <Label htmlFor="rb-method">How would you like to be reimbursed?</Label>
-              <select id="rb-method" className="h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm" value={preferredMethod} onChange={(e) => { const value = e.target.value; setPreferredMethod(isRepaymentMethod(value) ? value : ""); }}>
-                <option value="">Pick a method</option>
-                {Object.entries(METHOD_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </div>
           )}
           <p className="text-xs text-muted-foreground">Club Ledger only tracks reimbursements. Never enter bank or card details.</p>
           <Button className="w-full" size="lg" disabled={left > 0 || finish.isPending} onClick={() => finish.mutate()}>
