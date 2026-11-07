@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { canResetDemo } from './demo'
 import { readFileSync } from 'node:fs'
 
-const demoSql = readFileSync('drizzle/migrations/0005_safe_demo_and_category_access.sql', 'utf8')
-  .replace('ARRAY[1400,2200,3400,4200,5100,6200,7300,8800,9600,12600]', 'ARRAY[1400,2200,3400,4200,5100,6200,7300,8800,9600,12800]')
+let demoSql = readFileSync('drizzle/migrations/0005_safe_demo_and_category_access.sql', 'utf8')
+for (const file of ['0006_demo_venue_within_budget.sql', '0008_demo_supplies_total.sql']) {
+  const correction = readFileSync(`drizzle/migrations/${file}`, 'utf8')
+  for (const match of correction.matchAll(/replace\(definition,'(ARRAY\[[\d,]+\])','(ARRAY\[[\d,]+\])'\)/g)) {
+    if (match[1] && match[2]) demoSql = demoSql.replace(match[1], match[2])
+  }
+}
 
 describe('demo reset safety', () => {
   it('allows execs only on a marked (demo) club', () => {
