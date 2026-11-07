@@ -105,16 +105,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_demo: boolean
           name: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           name: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           name?: string
         }
         Relationships: []
@@ -671,8 +674,27 @@ export type Database = {
         Args: { _approve: boolean; _id: string; _note?: string }
         Returns: undefined
       }
+      demo_available: { Args: never; Returns: boolean }
       flag_stale_reimbursements: { Args: never; Returns: undefined }
       is_exec: { Args: never; Returns: boolean }
+      list_categories: {
+        Args: never
+        Returns: {
+          budget_cents: number
+          club_id: string
+          created_at: string
+          id: string
+          name: string
+          semester_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "categories"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      load_demo: { Args: { _reset?: boolean }; Returns: string }
       mark_reimbursement_paid: {
         Args: {
           _id: string
