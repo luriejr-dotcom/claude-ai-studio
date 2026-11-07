@@ -38,7 +38,7 @@ function ResetPassword() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
-      <form onSubmit={submit} className="surface animate-fade-up w-full max-w-sm space-y-4 p-7">
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4 border-t border-border py-8">
         <h1 className="text-2xl font-bold">Set your password</h1>
         <p className="text-sm text-muted-foreground">At least 8 characters.</p>
         <div className="space-y-1.5">

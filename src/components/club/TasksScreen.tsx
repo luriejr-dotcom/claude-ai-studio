@@ -81,7 +81,7 @@ export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: 
   if (isLoading) return <LoadingRows />;
 
   return (
-    <div className="surface overflow-hidden">
+    <div className="overflow-hidden border-y border-border">
       {visible.length === 0 && (
         <Empty title="All caught up!" line={exec ? "Add a task below to get things moving." : "Nothing on your plate right now."} />
       )}
@@ -92,12 +92,12 @@ export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: 
           const cat = t.category_id ? catById.get(t.category_id) : undefined;
           const who = t.assignee_id ? memberById.get(t.assignee_id) : undefined;
           return (
-            <li key={t.id} className="animate-fade-up flex items-center gap-3 px-4 py-3 hover:bg-muted/50" style={{ animationDelay: `${i * 25}ms` }}>
+            <li key={t.id} className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50" style={{ animationDelay: `${i * 25}ms` }}>
               <button
                 aria-label={done ? `${t.title} is done` : `Finish ${t.title} with a receipt`}
                 onClick={() => setOpen(t)}
                 className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                  "flex size-6 shrink-0 items-center justify-center rounded-md border transition-colors",
                   done ? "border-primary bg-primary text-primary-foreground" : "border-input hover:border-primary",
                 )}
               >
@@ -152,7 +152,7 @@ export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: 
         <div className="flex items-center justify-between px-4 py-3">
           <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold">
             <ChevronDown className={cn("size-4 transition-transform", !pastOpen && "-rotate-90")} />
-            Past tasks <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{pastCount}</span>
+            Past tasks <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">{pastCount}</span>
           </CollapsibleTrigger>
           <Link to="/past-tasks" className="text-sm text-primary hover:underline">See all & filter</Link>
         </div>
@@ -256,7 +256,7 @@ function AddTask({ me, members, cats, onAdded, prefill, onClosed }: {
   if (!open)
     return (
       <button onClick={() => setOpen(true)} className="flex w-full items-center gap-3 border-t border-border px-4 py-3 text-left text-muted-foreground hover:bg-muted/50 hover:text-foreground">
-        <span className="flex size-6 items-center justify-center rounded-full border-2 border-dashed border-input"><Plus className="size-3.5" /></span>
+        <span className="flex size-6 items-center justify-center rounded-md border border-dashed border-input"><Plus className="size-3.5" /></span>
         Add a task
       </button>
     );

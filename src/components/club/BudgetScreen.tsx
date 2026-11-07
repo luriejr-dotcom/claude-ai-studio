@@ -55,19 +55,19 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
   const sortedFlags = [...flags].sort((a, b) => SEV[a.severity] - SEV[b.severity]);
 
   return (
-    <div className="space-y-5">
-      <section className="bg-hero animate-fade-up relative overflow-hidden rounded-2xl p-6 text-primary-foreground shadow-lift sm:p-8">
+    <div className="space-y-8">
+      <section className="relative overflow-hidden border-b border-border py-8 text-foreground sm:py-10">
         <div className="flex flex-col-reverse items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
-            <div className="text-sm opacity-80">Left to spend · {semester.name}</div>
+            <div className="text-sm text-muted-foreground">Left to spend · {semester.name}</div>
             <div className="font-display mt-1 font-bold leading-none">
               <span className="text-6xl sm:text-7xl">{dollars}</span>
-              <span className="text-3xl opacity-70">{cents}</span>
+              <span className="text-3xl text-muted-foreground">{cents}</span>
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-              <span className={cn("rounded-full bg-card px-3 py-1 font-semibold", PILL[health])}>{HEALTH_LABEL[health]}</span>
-              <span className="opacity-80">{daysLeft} days left</span>
-              <Button size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" onClick={() => setEdit(true)}>
+              <span className={cn("rounded-md px-3 py-1 font-medium", PILL[health])}>{HEALTH_LABEL[health]}</span>
+              <span className="text-muted-foreground">{daysLeft} days left</span>
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setEdit(true)}>
                 <Pencil /> Edit budget
               </Button>
             </div>
@@ -75,14 +75,14 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
           <Ring pct={pct} />
         </div>
         <div className="mt-6">
-          <div className="flex h-3 overflow-hidden rounded-full bg-primary-foreground/15">
+          <div className="flex h-3 overflow-hidden rounded-sm bg-muted">
             <div className="bg-accent" style={{ width: seg(spent) }} />
             <div className="bg-warning/80" style={{ width: seg(Math.min(promised, total - spent)) }} />
           </div>
-          <div className="mt-2 flex flex-wrap gap-4 text-xs opacity-90">
+          <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
             <Legend cls="bg-accent" label={`Spent ${formatCents(spent)}`} />
             <Legend cls="bg-warning/80" label={`Promised ${formatCents(promised)}`} />
-            <Legend cls="bg-primary-foreground/30" label={`Remaining ${formatCents(Math.max(0, total - spent - promised))}`} />
+            <Legend cls="bg-muted-foreground/30" label={`Remaining ${formatCents(Math.max(0, total - spent - promised))}`} />
           </div>
         </div>
       </section>
@@ -92,7 +92,7 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
         Red if spent is over budget. Yellow at 80% spent, or if spent plus promised tasks would go over. Otherwise green.
       </p>
 
-      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 border-y border-border py-4 min-[400px]:grid-cols-3">
         <Stat n={openTasks.length} label="Open tasks" />
         <Stat n={overdue} label="Overdue" warn={overdue > 0} />
         <Stat n={waiting} label="Receipts to check" />
@@ -105,7 +105,7 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
           const h = budgetHealth(cs, cp, c.budget_cents);
           const diff = c.budget_cents - cs;
           return (
-            <div key={c.id} className="surface animate-fade-up p-4" style={{ animationDelay: `${i * 40}ms` }}>
+            <div key={c.id} className="surface p-6" style={{ animationDelay: `${i * 40}ms` }}>
               <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
                 <span className="flex size-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground"><CategoryIcon name={c.name} /></span>
                 <span className="truncate font-semibold">{c.name}</span>
@@ -121,14 +121,14 @@ export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: 
           );
         })}
         {total - assigned > 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
             <div className="font-semibold text-foreground">Not assigned to a task type</div>
             {formatCents(total - assigned)}
           </div>
         )}
       </section>
 
-      <section className="surface">
+      <section className="border-y border-border">
         <h2 className="border-b border-border px-4 py-3 text-lg font-bold">Needs attention</h2>
         {sortedFlags.length === 0 ? (
           <Empty title="Nothing to review" line="Your club's spending looks clean." />
@@ -148,13 +148,13 @@ function Ring({ pct }: { pct: number }) {
   return (
     <div className="relative size-28 shrink-0">
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="9" className="stroke-primary-foreground/15" />
+        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="9" className="stroke-border" />
         <circle cx="50" cy="50" r={r} fill="none" strokeWidth="9" strokeLinecap="round" className="stroke-accent transition-[stroke-dashoffset] duration-700"
           strokeDasharray={c} strokeDashoffset={c - (c * shown) / 100} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-display text-2xl font-bold">{pct}%</span>
-        <span className="text-[10px] uppercase tracking-wide opacity-70">used</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">used</span>
       </div>
     </div>
   );
@@ -165,7 +165,7 @@ const Legend = ({ cls, label }: { cls: string; label: string }) => (
 );
 
 const Stat = ({ n, label, warn }: { n: number; label: string; warn?: boolean }) => (
-  <div className="surface p-4 text-center">
+  <div className="p-4 text-left">
     <div className={cn("font-display text-3xl font-bold", warn && "text-destructive")}>{n}</div>
     <div className="text-xs text-muted-foreground">{label}</div>
   </div>
@@ -187,7 +187,7 @@ function FlagRow({ flag }: { flag: { id: string; severity: "high" | "medium" | "
   const sev = { high: "bg-destructive/15 text-destructive", medium: "bg-warning/25", low: "bg-muted text-muted-foreground" }[flag.severity];
   return (
     <li className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 px-4 py-3 sm:flex">
-      <span className={cn("mt-0.5 rounded-full px-2 py-0.5 text-xs font-semibold capitalize", sev)}>{flag.severity}</span>
+      <span className={cn("mt-0.5 rounded-md px-2 py-0.5 text-xs font-semibold capitalize", sev)}>{flag.severity}</span>
       <p className="min-w-0 flex-1 break-words text-sm">{flag.detail}</p>
       <Popover>
         <PopoverTrigger asChild><Button className="col-span-2 justify-self-end shrink-0" size="sm" variant="outline">Mark reviewed</Button></PopoverTrigger>

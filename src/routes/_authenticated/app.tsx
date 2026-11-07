@@ -130,7 +130,7 @@ function Shell({ me }: { me: Me }) {
 
   return (
     <div
-      className="mx-auto min-h-screen max-w-4xl px-4 pb-20 sm:px-6"
+      className="club-workspace mx-auto min-h-screen max-w-[1200px] px-4 pb-16 sm:px-8"
       onTouchStart={(e) => (touch.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => {
         if (!exec || touch.current == null) return;
@@ -141,9 +141,9 @@ function Shell({ me }: { me: Me }) {
         if (Math.abs(dx) > 60) go(idx + (dx < 0 ? 1 : -1));
       }}
     >
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border py-6">
         <div className="min-w-0">
-          <div className="font-display text-lg font-bold break-words">{clubName}</div>
+          <div className="font-display text-xl font-semibold break-words">{clubName}</div>
           <div className="text-xs text-muted-foreground">{me.name} · {me.title || me.role}</div>
         </div>
         <div className="flex shrink-0 gap-1">
@@ -158,16 +158,16 @@ function Shell({ me }: { me: Me }) {
       {!exec && clubName.includes('(demo)') && <p className="mb-4 text-sm text-primary">Fictional demo — no real purchases or payments.</p>}
 
       {exec ? (
-        <nav className="mb-6 flex flex-col items-center" aria-label="Screens">
-          <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:justify-center sm:gap-6">
+        <nav className="mb-8 mt-4 flex flex-col border-b border-border" aria-label="Screens">
+          <div className="grid w-full min-w-0 grid-cols-2 gap-x-4 sm:flex sm:gap-6">
             {SCREENS.map((s, i) => (
               <Button variant="ghost"
                 key={s}
                 onClick={() => go(i)}
                 aria-current={i === idx ? "page" : undefined}
                 className={cn(
-                  "font-display min-w-0 gap-1 px-1 whitespace-nowrap transition-all sm:gap-2 sm:px-4",
-                  i === idx ? "text-base sm:text-3xl font-bold text-foreground" : "text-sm sm:text-lg text-muted-foreground hover:text-foreground",
+                  "relative h-12 min-w-0 justify-start gap-2 rounded-none border-b-2 px-1 whitespace-nowrap transition-colors hover:bg-transparent",
+                  i === idx ? "border-primary text-sm font-semibold text-foreground" : "border-transparent text-sm text-muted-foreground hover:text-foreground",
                 )}
               >
                 {s}
@@ -175,7 +175,7 @@ function Shell({ me }: { me: Me }) {
               </Button>
             ))}
           </div>
-          <div className="mt-2 flex gap-1.5" aria-hidden>
+          <div className="hidden" aria-hidden>
             {SCREENS.map((s, i) => (
               <span key={s} className={cn("h-1.5 rounded-full transition-all", i === idx ? "w-5 bg-primary" : "w-1.5 bg-border")} />
             ))}
