@@ -95,7 +95,7 @@ export function TransactionsScreen() {
       </div>
 
       <Sheet open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
-        <SheetContent>
+        <SheetContent className="overflow-y-auto">
           {open && (
             <>
               <SheetHeader><SheetTitle className="font-display text-2xl">{open.merchant || "Unknown store"}</SheetTitle></SheetHeader>
