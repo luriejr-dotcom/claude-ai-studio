@@ -14,6 +14,8 @@ import { TransactionsScreen } from "@/components/club/TransactionsScreen";
 import { TeamSheet } from "@/components/club/TeamSheet";
 import { ReimbursementsScreen } from "@/components/club/Reimbursements";
 import { cn } from "@/lib/utils";
+import { DemoControls } from '@/components/club/DemoControls';
+import { LoadingRows } from '@/components/club/LoadingRows';
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
@@ -34,7 +36,7 @@ const SCREENS = ["Tasks", "Budget", "Transactions", "Reimbursements"] as const;
 
 function AppPage() {
   const { data: me, isLoading } = useQuery(meQuery);
-  if (isLoading) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
+  if (isLoading) return <div className="mx-auto max-w-4xl p-4"><LoadingRows /></div>;
   if (!me) return <CreateClub />;
   return <Shell me={me} />;
 }
@@ -123,20 +125,22 @@ function Shell({ me }: { me: Me }) {
   return (
     <div
       className="mx-auto min-h-screen max-w-4xl px-4 pb-20 sm:px-6"
-      onTouchStart={(e) => (touch.current = e.touches[0]!.clientX)}
+      onTouchStart={(e) => (touch.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => {
         if (!exec || touch.current == null) return;
-        const dx = e.changedTouches[0]!.clientX - touch.current;
+        const end = e.changedTouches[0];
+        if (!end) return;
+        const dx = end.clientX - touch.current;
         touch.current = null;
         if (Math.abs(dx) > 60) go(idx + (dx < 0 ? 1 : -1));
       }}
     >
-      <header className="flex items-center justify-between py-5">
-        <div>
-          <div className="font-display text-lg font-bold">{clubName}</div>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-5">
+        <div className="min-w-0">
+          <div className="font-display text-lg font-bold break-words">{clubName}</div>
           <div className="text-xs text-muted-foreground">{me.name} · {me.title || me.role}</div>
         </div>
-        <div className="flex gap-1">
+        <div className="flex shrink-0 gap-1">
           {exec && (
             <Button variant="ghost" size="sm" onClick={() => setTeam(true)}><Users /> Team</Button>
           )}
@@ -144,21 +148,24 @@ function Shell({ me }: { me: Me }) {
         </div>
       </header>
 
+      {exec && <DemoControls name={clubName} isDemo={(me.clubs as { is_demo?: boolean } | null)?.is_demo ?? false} />}
+      {!exec && clubName.includes('(demo)') && <p className="mb-4 text-sm text-primary">Fictional demo — no real purchases or payments.</p>}
+
       {exec ? (
         <nav className="mb-6 flex flex-col items-center" aria-label="Screens">
-          <div className="flex items-baseline gap-6 overflow-x-auto">
+          <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:justify-center sm:gap-6">
             {SCREENS.map((s, i) => (
-              <button
+              <Button variant="ghost"
                 key={s}
                 onClick={() => go(i)}
                 aria-current={i === idx ? "page" : undefined}
                 className={cn(
                   "font-display whitespace-nowrap transition-all",
-                  i === idx ? "text-3xl font-bold text-foreground" : "text-lg text-muted-foreground hover:text-foreground",
+                  i === idx ? "text-xl sm:text-3xl font-bold text-foreground" : "text-sm sm:text-lg text-muted-foreground hover:text-foreground",
                 )}
               >
                 {s}
-              </button>
+              </Button>
             ))}
           </div>
           <div className="mt-2 flex gap-1.5" aria-hidden>
