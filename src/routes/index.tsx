@@ -83,7 +83,6 @@ function AuthPage() {
         <div className="mb-9 text-center">
           <div className="relative mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
             <BookOpen className="size-7" strokeWidth={1.8} />
-            <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-background bg-accent" />
           </div>
           <h1 className="font-display text-5xl font-bold leading-none sm:text-6xl">ClubLedge<span className="text-accent">.</span></h1>
           <p className="mt-3 text-sm text-muted-foreground">Club money, minus the headache.</p>
