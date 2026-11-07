@@ -103,7 +103,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
       if (!f || cents === null || cents <= 0 || !path || paidOwn === null) throw new Error("Confirm the receipt details first");
       if (paidOwn && !isRepaymentMethod(preferredMethod)) throw new Error("Choose how you want to be reimbursed");
       const aiTotal = f.total.ai ? parseDollarsToCents(f.total.ai) : null;
-      const ai = { _ai_merchant: f.merchant.ai, _ai_date: f.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash };
+      const ai = { _ai_merchant: f.merchant.ai, ...(f.date.ai ? { _ai_date: f.date.ai } : {}), ...(aiTotal !== null ? { _ai_total_cents: aiTotal } : {}), _ai_note: note, _receipt_hash: hash };
       if (!task) {
         const { error } = await supabase.rpc("submit_reimbursement_v2", {
           _merchant: f.merchant.value, _purchase_date: f.date.value, _amount_cents: cents, _receipt_path: path, _category_id: category, _reason: why.trim(), _preferred_method: preferredMethod, ...ai,
@@ -113,7 +113,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
       }
       const { data, error } = await supabase.rpc("complete_task_with_receipt_v3", {
         _paid_own: paidOwn, _task_id: task.id, _merchant: f.merchant.value, _purchase_date: f.date.value, _amount_cents: cents, _receipt_path: path,
-        _preferred_method: paidOwn ? preferredMethod : undefined, ...ai,
+        ...(paidOwn ? { _preferred_method: preferredMethod } : {}), ...ai,
       });
       if (error) throw error;
       return ((data as { flags?: FlagOut[] } | null)?.flags ?? []);
