@@ -45,7 +45,7 @@ const sel = "h-9 min-w-0 max-w-full rounded-md border border-input bg-background
 export function StatusBadge({ status }: { status: Task["status"] }) {
   const done = status === "done";
   return (
-    <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", done ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground")}>
+    <span className={cn("rounded-md px-2 py-1 text-xs font-medium", done ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground")}>
       {done ? "Done" : "Cancelled"}
     </span>
   );
@@ -74,7 +74,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
   return (
     <div className="space-y-3">
       {filters && (
-        <div className="surface space-y-3 p-4">
+        <div className="space-y-4 border-y border-border py-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input className="pl-9" placeholder="Search by title" value={f.q} onChange={set("q")} aria-label="Search by title" />
@@ -103,7 +103,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
         </div>
       )}
 
-      <div className={cn(filters && "surface overflow-hidden")}>
+      <div className={cn(filters && "overflow-hidden border-y border-border")}>
         {rows.length === 0 ? (
           <Empty title={dirty ? "No matches" : "No past tasks yet"} line={dirty ? "Try loosening the filters." : "Finished and cancelled tasks will collect here."} />
         ) : (
@@ -116,7 +116,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
               const spent = txn?.amount_cents ?? 0;
               return (
                 <li key={t.id}>
-                  <button onClick={() => setOpen(t)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/50">
+                  <button onClick={() => setOpen(t)} className="flex w-full items-center gap-4 px-4 py-4 text-left hover:bg-muted/50">
                     <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
                       {url ? <img src={url} alt="" className="size-full object-cover" loading="lazy" /> : <ImageOff className="size-4 text-muted-foreground" />}
                     </span>
@@ -172,7 +172,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
                 <div className="mt-5 space-y-2 px-4 text-sm">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">AI check</div>
                   {aiChecks(openTxn).map((c) => <KV key={c.k} k={c.k} v={c.v} />)}
-                  {openTxn.ai_note && <p className="rounded-xl bg-accent/20 p-3 text-xs">{openTxn.ai_note}</p>}
+                  {openTxn.ai_note && <p className="rounded-lg bg-muted p-3 text-xs">{openTxn.ai_note}</p>}
                 </div>
               )}
               {openFlags.length > 0 && (

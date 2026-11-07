@@ -130,7 +130,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
           {standalone ? "Your reimbursement request was sent to the President and Treasurer." : paidOwn ? "The purchase was added and your reimbursement request was sent." : "The receipt is saved and the purchase was added."}
         </p>
         {done.length > 0 && (
-          <div className="rounded-2xl border border-border bg-secondary/50 p-4">
+          <div className="rounded-lg border border-border bg-secondary/50 p-4">
             <div className="font-semibold">Heads up for the treasurer</div>
             <ul className="mt-2 space-y-1.5 text-sm">
               {done.map((x, i) => <li key={i} className="flex gap-2"><span className={cn("mt-1.5 size-2 shrink-0 rounded-full", x.severity === "high" ? "bg-destructive" : x.severity === "medium" ? "bg-accent" : "bg-muted-foreground")} />{x.detail}</li>)}
@@ -146,7 +146,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
   return (
     <div className="mt-6 space-y-4 px-4">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Step 1 · Receipt</div>
-      <label className={cn("flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed border-input text-center hover:border-primary", preview ? "p-3" : "p-8")}>
+      <label className={cn("flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-input text-center hover:border-primary", preview ? "p-3" : "p-8")}>
         {preview ? <img src={preview} alt="Receipt" className="max-h-56 rounded-lg object-contain" /> : <Camera className="size-8 text-muted-foreground" />}
         <span className="inline-flex items-center gap-1.5 text-sm font-medium">
           {busy && <Loader2 className="size-4 animate-spin" />}
@@ -168,7 +168,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Step 2 · Is everything correct?</div>
           {reason && <p className="text-sm text-muted-foreground">{reason} Please type the details in.</p>}
-          {note && <div className="flex gap-2 rounded-xl bg-accent/20 p-3 text-sm"><Sparkles className="mt-0.5 size-4 shrink-0" />{note}</div>}
+          {note && <div className="flex gap-2 rounded-lg bg-muted p-3 text-sm"><Sparkles className="mt-0.5 size-4 shrink-0" />{note}</div>}
           <ConfirmField label="Store" f={f.merchant} onChange={(p) => set("merchant", p)} />
           <ConfirmField label="Date" type="date" f={f.date} onChange={(p) => set("date", p)} />
           <ConfirmField label="Total paid" f={f.total} onChange={(p) => set("total", p)} />
@@ -187,7 +187,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
               </div>
             </>
           ) : (
-            <fieldset className="rounded-xl border border-border p-3">
+            <fieldset className="rounded-lg border border-border p-3">
               <legend className="px-1 text-xs uppercase tracking-wide text-muted-foreground">How was this paid?</legend>
               <div className="grid gap-2">
                 {([[false, "Club card / club funds"], [true, "My own money (request reimbursement)"]] as const).map(([v, l]) => (
@@ -209,7 +209,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
 function ConfirmField({ label, f, onChange, type = "text" }: { label: string; f: Field; onChange: (p: Partial<Field>) => void; type?: string }) {
   const id = `cf-${label}`;
   return (
-    <div className={cn("rounded-xl border p-3 transition-colors", f.confirmed ? "border-primary bg-primary/5" : "border-border")}>
+    <div className={cn("rounded-lg border p-3 transition-colors", f.confirmed ? "border-primary bg-primary/5" : "border-border")}>
       <Label htmlFor={id} className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
       {f.editing ? (
         <Input id={id} type={type} inputMode={label === "Total paid" ? "decimal" : undefined} placeholder={label === "Total paid" ? "$0.00" : undefined}
