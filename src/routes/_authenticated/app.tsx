@@ -166,8 +166,8 @@ function Shell({ me }: { me: Me }) {
                 onClick={() => go(i)}
                 aria-current={i === idx ? "page" : undefined}
                 className={cn(
-                  "font-display whitespace-nowrap transition-all",
-                  i === idx ? "text-xl sm:text-3xl font-bold text-foreground" : "text-sm sm:text-lg text-muted-foreground hover:text-foreground",
+                  "font-display min-w-0 gap-1 px-1 whitespace-nowrap transition-all sm:gap-2 sm:px-4",
+                  i === idx ? "text-base sm:text-3xl font-bold text-foreground" : "text-sm sm:text-lg text-muted-foreground hover:text-foreground",
                 )}
               >
                 {s}
