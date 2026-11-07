@@ -1,4 +1,8 @@
 # Club Ledger roadmap
+## Visual redesign
+- [x] Restore the original swipe-style top with restrained red accents; verified swipe/arrow navigation and 375/808/1280px layouts
+- [x] Refine tokens, navigation, login and finance screens without changing functionality
+- [x] Verify signed-in screens, forms, light/dark themes and phone layouts; list edited files
 ## Reimbursement approval and repayment preferences
 - [x] Fix approval rejecting reimbursement-sourced purchases; verified signed-in approval of the reported request
 - [x] Save and display preferred repayment methods for standalone and task requests; selector and method tests passed

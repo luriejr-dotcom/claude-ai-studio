@@ -36,7 +36,7 @@ const TONE: Record<ReimbStatus, string> = {
 };
 
 export function ReimbBadge({ status }: { status: ReimbStatus }) {
-  return <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", TONE[status])}>{STATUS_LABEL[status]}</span>;
+  return <span className={cn("rounded-md px-2 py-1 text-xs font-medium", TONE[status])}>{STATUS_LABEL[status]}</span>;
 }
 
 export function RequestReimbursementSheet({ open, onOpenChange, clubId }: { open: boolean; onOpenChange: (o: boolean) => void; clubId: string }) {
@@ -58,7 +58,7 @@ export function ReimbCard({ onOpen }: { onOpen?: (() => void) | undefined }) {
   const { data = [] } = useQuery(reimbQuery);
   const s = reimbSummary(data);
   return (
-    <section className="surface p-5">
+    <section className="border-y border-border py-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <h2 className="flex items-center gap-2 text-lg font-bold"><HandCoins className="size-5 text-primary" /> Reimbursements</h2>
         {onOpen && <Button variant="ghost" size="sm" onClick={onOpen}>Open list</Button>}
@@ -122,7 +122,7 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
         <Button className="justify-self-start sm:justify-self-end" size="sm" onClick={() => setAsking(true)}><Receipt /> Request reimbursement</Button>
       </div>
       {exec && (
-        <div className="surface grid min-w-0 grid-cols-2 items-center gap-2 p-4 sm:flex sm:flex-wrap">
+        <div className="grid min-w-0 grid-cols-2 items-center gap-2 border-y border-border py-4 sm:flex sm:flex-wrap">
           <select className={sel} value={f.status} onChange={set("status")} aria-label="Status">
             <option value="">Any status</option>
             {(Object.keys(STATUS_LABEL) as ReimbStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
@@ -138,13 +138,13 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
         </div>
       )}
 
-      <div className="surface overflow-hidden">
+      <div className="overflow-hidden border-y border-border">
         {isLoading ? <LoadingRows /> : rows.length === 0 ? (
           <Empty title={dirty ? "No matches" : "No reimbursement requests"} line={dirty ? "Try loosening the filters." : "Paid for something yourself? Request it back here."} />
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((r) => (
-              <li key={r.id} className="grid min-w-0 gap-3 px-4 py-3 hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <li key={r.id} className="grid min-w-0 gap-4 px-4 py-4 transition-colors hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => setOpen(r)}>
                   <Avatar id={r.member_id} name={mName[r.member_id] ?? "?"} size={32} />
                   <span className="min-w-0 flex-1">

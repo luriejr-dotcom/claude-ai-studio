@@ -28,8 +28,8 @@ function PastTasksPage() {
   const exec = isExecRole(me?.role);
   if (isLoading) return <div className="p-4"><LoadingRows /></div>;
   return (
-    <div className="mx-auto min-h-screen max-w-4xl px-4 pb-20 sm:px-6">
-      <header className="py-5">
+    <div className="mx-auto min-h-screen max-w-[1200px] px-4 pb-16 sm:px-8">
+      <header className="mb-8 border-b border-border py-6">
         <Link to="/app" search={{ dup: undefined }} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Back to tasks</Link>
         <h1 className="mt-3 text-3xl font-bold">Past tasks</h1>
         <p className="text-sm text-muted-foreground">{exec ? "Everything the club has finished or cancelled." : "Tasks you've finished, plus any that were cancelled."}</p>

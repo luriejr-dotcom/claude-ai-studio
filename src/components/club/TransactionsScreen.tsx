@@ -55,7 +55,7 @@ export function TransactionsScreen() {
   if (isLoading) return <LoadingRows />;
   return (
     <div className="space-y-4">
-      <div className="surface space-y-3 p-4">
+      <div className="space-y-4 border-y border-border py-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search store or person" value={f.q} onChange={set("q")} aria-label="Search" />
@@ -85,12 +85,12 @@ export function TransactionsScreen() {
         <Button variant="outline" size="sm" onClick={exportCsv} disabled={!rows.length}><Download /> Export CSV</Button>
       </div>
 
-      <div className="surface divide-y divide-border overflow-hidden">
+      <div className="divide-y divide-border overflow-hidden border-y border-border">
         {rows.length === 0 ? (
           <Empty title={txns.length ? "No matches" : "No purchases yet"} line={txns.length ? "Try loosening the filters." : "Purchases will show up here as they're added."} />
         ) : rows.map((t) => (
-          <button key={t.id} onClick={() => setOpen(t)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""] ?? null} /></span>
+          <button key={t.id} onClick={() => setOpen(t)} className="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-muted/50">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""] ?? null} /></span>
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{t.merchant || "Unknown store"}</div>
               <div className="break-words text-xs text-muted-foreground">{t.purchase_date} · {mName[t.member_id ?? ""] ?? "—"} · {t.source}</div>
@@ -121,7 +121,7 @@ export function TransactionsScreen() {
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">AI check</Label>
                   {aiChecks(open).map((c) => <Row key={c.k} k={c.k} v={c.v} />)}
                   {open.confirmed_by && <p className="text-xs text-muted-foreground">Confirmed by {mName[open.confirmed_by] ?? "—"}{open.confirmed_at && ` · ${new Date(open.confirmed_at).toLocaleString()}`}</p>}
-                  {open.ai_note && <p className="rounded-xl bg-accent/20 p-3 text-xs">{open.ai_note}</p>}
+                  {open.ai_note && <p className="rounded-lg bg-muted p-3 text-xs">{open.ai_note}</p>}
                 </div>
               )}
             </>
