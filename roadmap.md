@@ -1,6 +1,6 @@
 # Club Ledger roadmap
 ## Visual redesign
-- [ ] Restore the original swipe-style top with restrained red accents and verify swiping
+- [x] Restore the original swipe-style top with restrained red accents; verified swipe/arrow navigation and 375/808/1280px layouts
 - [x] Refine tokens, navigation, login and finance screens without changing functionality
 - [x] Verify signed-in screens, forms, light/dark themes and phone layouts; list edited files
 ## Reimbursement approval and repayment preferences
