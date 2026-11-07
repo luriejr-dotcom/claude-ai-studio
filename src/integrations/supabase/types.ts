@@ -125,6 +125,7 @@ export type Database = {
           created_at: string
           detail: string
           id: string
+          reimbursement_id: string | null
           review_note: string | null
           reviewed_by: string | null
           rule: string
@@ -138,6 +139,7 @@ export type Database = {
           created_at?: string
           detail: string
           id?: string
+          reimbursement_id?: string | null
           review_note?: string | null
           reviewed_by?: string | null
           rule: string
@@ -151,6 +153,7 @@ export type Database = {
           created_at?: string
           detail?: string
           id?: string
+          reimbursement_id?: string | null
           review_note?: string | null
           reviewed_by?: string | null
           rule?: string
@@ -165,6 +168,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flags_reimbursement_id_fkey"
+            columns: ["reimbursement_id"]
+            isOneToOne: false
+            referencedRelation: "reimbursements"
             referencedColumns: ["id"]
           },
           {
@@ -230,6 +240,150 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reimbursements: {
+        Row: {
+          ai_date: string | null
+          ai_merchant: string | null
+          ai_note: string
+          ai_total_cents: number | null
+          amount_cents: number
+          category_id: string | null
+          club_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          member_id: string
+          merchant: string
+          paid_at: string | null
+          paid_by: string | null
+          paid_method: Database["public"]["Enums"]["pay_method"] | null
+          paid_reference: string | null
+          purchase_date: string
+          reason: string
+          receipt_hash: string | null
+          receipt_path: string
+          semester_id: string
+          status: Database["public"]["Enums"]["reimb_status"]
+          task_id: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          ai_date?: string | null
+          ai_merchant?: string | null
+          ai_note?: string
+          ai_total_cents?: number | null
+          amount_cents: number
+          category_id?: string | null
+          club_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          member_id: string
+          merchant?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_method?: Database["public"]["Enums"]["pay_method"] | null
+          paid_reference?: string | null
+          purchase_date: string
+          reason?: string
+          receipt_hash?: string | null
+          receipt_path: string
+          semester_id: string
+          status?: Database["public"]["Enums"]["reimb_status"]
+          task_id?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          ai_date?: string | null
+          ai_merchant?: string | null
+          ai_note?: string
+          ai_total_cents?: number | null
+          amount_cents?: number
+          category_id?: string | null
+          club_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          member_id?: string
+          merchant?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_method?: Database["public"]["Enums"]["pay_method"] | null
+          paid_reference?: string | null
+          purchase_date?: string
+          reason?: string
+          receipt_hash?: string | null
+          receipt_path?: string
+          semester_id?: string
+          status?: Database["public"]["Enums"]["reimb_status"]
+          task_id?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reimbursements_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reimbursements_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -473,6 +627,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _reimb_over_flag: {
+        Args: { r: Database["public"]["Tables"]["reimbursements"]["Row"] }
+        Returns: undefined
+      }
       claim_membership: { Args: never; Returns: undefined }
       complete_task_with_receipt: {
         Args: {
@@ -489,18 +647,71 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_task_with_receipt_v2: {
+        Args: {
+          _ai_date?: string
+          _ai_merchant?: string
+          _ai_note?: string
+          _ai_total_cents?: number
+          _amount_cents: number
+          _merchant: string
+          _paid_own?: boolean
+          _purchase_date: string
+          _receipt_hash?: string
+          _receipt_path: string
+          _task_id: string
+        }
+        Returns: Json
+      }
       create_club: {
         Args: { _club_name: string; _name: string }
         Returns: string
       }
+      decide_reimbursement: {
+        Args: { _approve: boolean; _id: string; _note?: string }
+        Returns: undefined
+      }
+      flag_stale_reimbursements: { Args: never; Returns: undefined }
       is_exec: { Args: never; Returns: boolean }
+      mark_reimbursement_paid: {
+        Args: {
+          _id: string
+          _method: Database["public"]["Enums"]["pay_method"]
+          _reference?: string
+        }
+        Returns: undefined
+      }
       my_club_id: { Args: never; Returns: string }
       my_member_id: { Args: never; Returns: string }
+      submit_reimbursement: {
+        Args: {
+          _ai_date?: string
+          _ai_merchant?: string
+          _ai_note?: string
+          _ai_total_cents?: number
+          _amount_cents: number
+          _category_id: string
+          _merchant: string
+          _purchase_date: string
+          _reason: string
+          _receipt_hash?: string
+          _receipt_path: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       flag_severity: "high" | "medium" | "low"
       flag_status: "open" | "reviewed"
       member_role: "president" | "treasurer" | "officer"
+      pay_method:
+        | "venmo"
+        | "zelle"
+        | "cash"
+        | "check"
+        | "club_card_refund"
+        | "other"
+      reimb_status: "submitted" | "approved" | "denied" | "paid"
       task_status: "assigned" | "receipt_uploaded" | "done" | "cancelled"
     }
     CompositeTypes: {
@@ -632,6 +843,15 @@ export const Constants = {
       flag_severity: ["high", "medium", "low"],
       flag_status: ["open", "reviewed"],
       member_role: ["president", "treasurer", "officer"],
+      pay_method: [
+        "venmo",
+        "zelle",
+        "cash",
+        "check",
+        "club_card_refund",
+        "other",
+      ],
+      reimb_status: ["submitted", "approved", "denied", "paid"],
       task_status: ["assigned", "receipt_uploaded", "done", "cancelled"],
     },
   },
