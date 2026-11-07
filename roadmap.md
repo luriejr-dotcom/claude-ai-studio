@@ -1,8 +1,9 @@
 # Club Ledger roadmap
 ## Demo and polish
-- [ ] Exec-only empty-club demo loader and demo-only reset with fictional people, Fall 2026 budget, 40 purchases, open/past tasks and a waiting reimbursement
-- [ ] Phone layouts without horizontal overflow, in-app dialogs and loading skeletons
-- [ ] Verify officer URL/data restrictions and demo flow
+- [x] Exec-only empty-club demo loader and demo-only reset with fictional people, Fall 2026 budget, 40 purchases, open/past tasks and a waiting reimbursement
+- [x] Phone layouts without horizontal overflow, in-app dialogs and loading skeletons
+- [x] Inspect officer URL/data restrictions; hide category budgets at the database boundary
+- [ ] Full demo load/reset and officer signed-in verification (blocked: isolated test-account creation rejected by backend; existing real club left untouched)
 
 - [x] Login, club creation, officer invites
 - [x] Tasks screen (add, complete, delegate, details)
