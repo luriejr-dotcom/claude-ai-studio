@@ -84,7 +84,7 @@ export function TransactionsScreen() {
           <Empty title={txns.length ? "No matches" : "No purchases yet"} line={txns.length ? "Try loosening the filters." : "Purchases will show up here as they're added."} />
         ) : rows.map((t) => (
           <button key={t.id} onClick={() => setOpen(t)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""]} /></span>
+            <span className="flex size-9 items-center justify-center rounded-xl bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""] ?? null} /></span>
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{t.merchant || "Unknown store"}</div>
               <div className="text-xs text-muted-foreground">{t.purchase_date} · {mName[t.member_id ?? ""] ?? "—"} · {t.source}</div>
