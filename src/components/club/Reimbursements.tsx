@@ -53,7 +53,7 @@ export function RequestReimbursementSheet({ open, onOpenChange, clubId }: { open
   );
 }
 
-export function ReimbCard({ onOpen }: { onOpen?: () => void }) {
+export function ReimbCard({ onOpen }: { onOpen?: (() => void) | undefined }) {
   const { data = [] } = useQuery(reimbQuery);
   const s = reimbSummary(data);
   return (
