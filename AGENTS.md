@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Club Ledger rules
+- Derive action-required dots from shared status predicates and existing RLS-filtered queries, refreshed every 30 seconds; opening a screen does not clear pending work.
 - Demo loading/reset uses a club-scoped, exec-checked atomic database RPC; reset additionally requires the persisted demo marker and demo name, preserving linked accounts and never inviting fictional members.
 - Read category names through list_categories(), which masks category budgets for officers; direct category rows and semester totals remain exec-only under RLS, while officers retain own receipt/history reads.
 - Money is stored and computed as integer cents (helpers in src/lib/money.ts); never floats — avoids rounding errors.
