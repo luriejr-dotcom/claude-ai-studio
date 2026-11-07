@@ -8,10 +8,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { membersQuery } from "@/lib/club";
 import { inviteOfficer } from "@/lib/invite.functions";
 import { Avatar } from "./bits";
+import { LoadingRows } from './LoadingRows';
 
 export function TeamSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
-  const { data: members = [] } = useQuery(membersQuery);
+  const { data: members = [], isLoading } = useQuery(membersQuery);
   const empty = { name: "", email: "", title: "", role: "officer" as "officer" | "treasurer" };
   const [f, setF] = useState(empty);
   const [busy, setBusy] = useState(false);
@@ -34,6 +35,7 @@ export function TeamSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader><SheetTitle className="font-display text-2xl">Your team</SheetTitle></SheetHeader>
+        {isLoading && <div className="px-4"><LoadingRows /></div>}
         <ul className="mt-4 space-y-2 px-4">
           {members.map((m) => (
             <li key={m.id} className="flex items-center gap-3">

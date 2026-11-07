@@ -30,6 +30,8 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Club Ledger rules
+- Demo loading/reset uses a club-scoped, exec-checked atomic database RPC; reset additionally requires the persisted demo marker and demo name, preserving linked accounts and never inviting fictional members.
+- Read category names through list_categories(), which masks category budgets for officers; direct category rows and semester totals remain exec-only under RLS, while officers retain own receipt/history reads.
 - Money is stored and computed as integer cents (helpers in src/lib/money.ts); never floats — avoids rounding errors.
 - Club/role access is enforced in Postgres RLS via my_club_id()/is_exec()/my_member_id() security-definer helpers; UI checks are cosmetic only.
 - task_guard trigger locks done/cancelled tasks, allows cancel only for execs, and blocks officer detail edits and post-receipt delegation, so rules hold for any client.

@@ -12,6 +12,7 @@ import { EMPTY_FILTERS, filterTxns, txnsToCsv, type TxnFilters } from "@/lib/txn
 import { Avatar, CategoryIcon, Empty } from "./bits";
 import { reimbQuery } from "./Reimbursements";
 import { STATUS_LABEL } from "@/lib/reimb";
+import { LoadingRows } from './LoadingRows';
 
 const txnsQuery = {
   queryKey: ["transactions"],
@@ -22,10 +23,10 @@ const txnsQuery = {
   },
 };
 
-const sel = "h-9 rounded-md border border-input bg-background px-2 text-sm";
+const sel = "h-9 min-w-0 max-w-full rounded-md border border-input bg-background px-2 text-sm";
 
 export function TransactionsScreen() {
-  const { data: txns = [] } = useQuery(txnsQuery);
+  const { data: txns = [], isLoading } = useQuery(txnsQuery);
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const { data: tasks = [] } = useQuery(tasksQuery);
@@ -51,6 +52,7 @@ export function TransactionsScreen() {
     URL.revokeObjectURL(a.href);
   }
 
+  if (isLoading) return <LoadingRows />;
   return (
     <div className="space-y-4">
       <div className="surface space-y-3 p-4">
@@ -58,7 +60,7 @@ export function TransactionsScreen() {
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search store or person" value={f.q} onChange={set("q")} aria-label="Search" />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid min-w-0 grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
           <select className={sel} value={f.member} onChange={set("member")} aria-label="Person">
             <option value="">Everyone</option>
             {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -71,9 +73,9 @@ export function TransactionsScreen() {
             <option value="">Any source</option>
             {sources.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <Input type="date" className="h-9 w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
+          <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
           <span className="text-sm text-muted-foreground">to</span>
-          <Input type="date" className="h-9 w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
+          <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
           {dirty && <Button variant="ghost" size="sm" onClick={() => setF(EMPTY_FILTERS)}><X /> Clear</Button>}
         </div>
       </div>
@@ -88,12 +90,12 @@ export function TransactionsScreen() {
           <Empty title={txns.length ? "No matches" : "No purchases yet"} line={txns.length ? "Try loosening the filters." : "Purchases will show up here as they're added."} />
         ) : rows.map((t) => (
           <button key={t.id} onClick={() => setOpen(t)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""] ?? null} /></span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"><CategoryIcon name={cName[t.category_id ?? ""] ?? null} /></span>
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{t.merchant || "Unknown store"}</div>
-              <div className="text-xs text-muted-foreground">{t.purchase_date} · {mName[t.member_id ?? ""] ?? "—"} · {t.source}</div>
+              <div className="break-words text-xs text-muted-foreground">{t.purchase_date} · {mName[t.member_id ?? ""] ?? "—"} · {t.source}</div>
             </div>
-            <div className="font-display font-semibold tabular-nums">{formatCents(t.amount_cents)}</div>
+            <div className="shrink-0 text-right font-display text-sm font-semibold tabular-nums">{formatCents(t.amount_cents)}</div>
           </button>
         ))}
       </div>
@@ -143,5 +145,5 @@ export function aiChecks(t: Txn) {
 }
 
 function Row({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-medium">{v}</dd></div>;
+  return <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="min-w-0 break-words text-right font-medium">{v}</dd></div>;
 }

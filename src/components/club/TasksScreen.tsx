@@ -19,13 +19,14 @@ import { formatCents, parseDollarsToCents } from "@/lib/money";
 import { ReceiptStep } from "./ReceiptStep";
 import { Avatar, CategoryIcon, Empty } from "./bits";
 import { cn } from "@/lib/utils";
+import { LoadingRows } from './LoadingRows';
 
 const fmtDate = (d: string) =>
   new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: boolean; dupId?: string | undefined; onDupUsed?: () => void }) {
   const qc = useQueryClient();
-  const { data: tasks = [] } = useQuery(tasksQuery);
+  const { data: tasks = [], isLoading } = useQuery(tasksQuery);
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const [open, setOpen] = useState<Task | null>(null);
@@ -77,6 +78,7 @@ export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: 
   const visible = tasks.filter((t) => !isPast(t));
   const pastCount = tasks.filter(isPast).length;
   const active = members.filter((m) => m.active);
+  if (isLoading) return <LoadingRows />;
 
   return (
     <div className="surface overflow-hidden">

@@ -39,7 +39,7 @@ export const membersQuery = queryOptions({
 export const categoriesQuery = queryOptions({
   queryKey: ["categories"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("categories").select("*").order("created_at");
+    const { data, error } = await supabase.rpc("list_categories");
     if (error) throw error;
     return data;
   },
@@ -63,6 +63,8 @@ export const budgetQuery = queryOptions({
       supabase.from("flags").select("*").eq("status", "open"),
     ]);
     if (s.error) throw s.error;
+    if (t.error) throw t.error;
+    if (f.error) throw f.error;
     return { semester: s.data[0] ?? null, txns: t.data ?? [], flags: f.data ?? [] };
   },
 });
