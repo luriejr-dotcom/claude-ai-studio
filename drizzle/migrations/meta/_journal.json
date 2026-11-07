@@ -43,6 +43,13 @@
       "when": 1794081720536,
       "tag": "0005_safe_demo_and_category_access",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794081856273,
+      "tag": "0006_demo_venue_within_budget",
+      "breakpoints": true
     }
   ]
 }
