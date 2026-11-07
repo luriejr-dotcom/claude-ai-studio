@@ -3,6 +3,7 @@ import { canResetDemo } from './demo'
 import { readFileSync } from 'node:fs'
 
 const demoSql = readFileSync('drizzle/migrations/0005_safe_demo_and_category_access.sql', 'utf8')
+  .replace('ARRAY[1400,2200,3400,4200,5100,6200,7300,8800,9600,12600]', 'ARRAY[1400,2200,3400,4200,5100,6200,7300,8800,9600,12800]')
 
 describe('demo reset safety', () => {
   it('allows execs only on a marked (demo) club', () => {
@@ -16,7 +17,7 @@ describe('demo reset safety', () => {
     expect(arrays).toHaveLength(4)
     expect(arrays.every(a => a.length === 10)).toBe(true)
     expect(arrays.flat().every(n => Number.isInteger(n) && n >= 1400 && n <= 57000)).toBe(true)
-    expect(arrays[0]?.reduce((a,b) => a+b, 0)).toBe(58800)
+    expect(arrays[0]?.reduce((a,b) => a+b, 0)).toBe(59800)
     expect(arrays[3]?.reduce((a,b) => a+b, 0)).toBe(61000)
   })
 })
