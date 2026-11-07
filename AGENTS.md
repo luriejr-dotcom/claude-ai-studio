@@ -43,4 +43,4 @@ use the editor.
 
 ## App emails
 - Use the server-only managed sendTemplateEmail helper and React Email registry; delivery, retries, suppression, unsubscribe, and logs are managed by Lovable, so never create an email queue or email tables.
-- Preserve /lovable/* middleware bypass and entities v4 aliases so authenticated email previews render without app redirects or incompatible dependency resolution.
+- Preserve /lovable/* middleware bypass and entities v4 aliases (modern decode/encode/escape subpaths before the root alias) so email previews and publishing resolve both modern and legacy parser imports.
