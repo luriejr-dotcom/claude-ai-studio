@@ -5,7 +5,7 @@ import type { Txn } from "./club";
 const t = (o: Partial<Txn>): Txn => ({
   ai_corrected: false, amount_cents: 100, category_id: "c1", club_id: "k", created_at: "2026-01-01T00:00:00Z",
   id: Math.random().toString(), member_id: "m1", merchant: "Shop", purchase_date: "2026-01-01",
-  receipt_path: null, semester_id: "s", source: "manual", task_id: null, ...o,
+  receipt_path: null, ai_date: null, ai_merchant: null, ai_note: "", ai_total_cents: null, confirmed_at: null, confirmed_by: null, receipt_hash: null, semester_id: "s", source: "manual", task_id: null, ...o,
 });
 
 describe("transactions", () => {
