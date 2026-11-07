@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/app")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { dup?: string | undefined } => ({ dup: typeof s["dup"] === "string" ? s["dup"] : undefined }),
   component: AppPage,
 });
 
@@ -83,6 +84,8 @@ function CreateClub() {
 type Me = NonNullable<Awaited<ReturnType<typeof fetchMe>>>;
 
 function Shell({ me }: { me: Me }) {
+  const { dup } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const exec = isExecRole(me.role);
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -164,7 +167,7 @@ function Shell({ me }: { me: Me }) {
       )}
 
       <div key={screen} className={dir === 1 ? "animate-slide-right" : "animate-slide-left"}>
-        {screen === "Tasks" && <TasksScreen me={me} exec={exec} />}
+        {screen === "Tasks" && <TasksScreen me={me} exec={exec} dupId={dup} onDupUsed={() => navigate({ search: { dup: undefined }, replace: true })} />}
         {screen === "Budget" && <BudgetScreen />}
         {screen === "Transactions" && <TransactionsScreen />}
       </div>

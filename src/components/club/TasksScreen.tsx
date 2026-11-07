@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Check, Forward, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Ban, Check, ChevronDown, Forward, Plus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PastTasksList } from "./PastTasks";
+import { isPast } from "@/lib/past-tasks";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +23,21 @@ import { cn } from "@/lib/utils";
 const fmtDate = (d: string) =>
   new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
+export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: boolean; dupId?: string | undefined; onDupUsed?: () => void }) {
   const qc = useQueryClient();
   const { data: tasks = [] } = useQuery(tasksQuery);
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const [open, setOpen] = useState<Task | null>(null);
+  const [dupFrom, setDupFrom] = useState<Task | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState<Task | null>(null);
+  const [pastOpen, setPastOpen] = useState(false);
+
+  useEffect(() => {
+    if (!dupId) return;
+    const t = tasks.find((x) => x.id === dupId);
+    if (t) { setDupFrom(t); onDupUsed?.(); }
+  }, [dupId, tasks, onDupUsed]);
 
   const memberById = new Map(members.map((m) => [m.id, m]));
   const catById = new Map(cats.map((c) => [c.id, c]));
@@ -45,9 +59,23 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const visible = tasks
-    .filter((t) => t.status !== "cancelled")
-    .sort((a, b) => Number(a.status === "done") - Number(b.status === "done"));
+  const cancel = useMutation({
+    mutationFn: async (t: Task) => {
+      const { error } = await supabase.from("tasks").update({ status: "cancelled" }).eq("id", t.id);
+      if (error) throw error;
+      await log("task_cancelled", t.title, t.id);
+    },
+    onSuccess: () => {
+      toast.success("Task cancelled — it's in Past tasks now");
+      setOpen(null);
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["budget"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const visible = tasks.filter((t) => !isPast(t));
+  const pastCount = tasks.filter(isPast).length;
   const active = members.filter((m) => m.active);
 
   return (
@@ -111,7 +139,38 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
           );
         })}
       </ul>
-      {exec && <AddTask me={me} members={active} cats={cats} onAdded={(id, title) => log("task_created", title, id)} />}
+      {exec && (
+        <AddTask
+          key={dupFrom?.id ?? "new"} prefill={dupFrom} onClosed={() => setDupFrom(null)}
+          me={me} members={active} cats={cats} onAdded={(id, title) => log("task_created", title, id)}
+        />
+      )}
+
+      <Collapsible open={pastOpen} onOpenChange={setPastOpen} className="border-t border-border">
+        <div className="flex items-center justify-between px-4 py-3">
+          <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold">
+            <ChevronDown className={cn("size-4 transition-transform", !pastOpen && "-rotate-90")} />
+            Past tasks <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{pastCount}</span>
+          </CollapsibleTrigger>
+          <Link to="/past-tasks" className="text-sm text-primary hover:underline">See all & filter</Link>
+        </div>
+        <CollapsibleContent className="border-t border-border">
+          <PastTasksList tasks={tasks} members={members} cats={cats} exec={exec} filters={false} limit={10} onDuplicate={(t) => setDupFrom(t)} />
+        </CollapsibleContent>
+      </Collapsible>
+
+      <AlertDialog open={!!confirmCancel} onOpenChange={(o) => !o && setConfirmCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel “{confirmCancel?.title}”?</AlertDialogTitle>
+            <AlertDialogDescription>It moves to Past tasks as Cancelled and its spending limit stops counting as promised. This can't be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep task</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => confirmCancel && cancel.mutate(confirmCancel)}>Cancel task</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Sheet open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <SheetContent className="overflow-y-auto">
@@ -129,6 +188,11 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
               {open.status !== "done" && open.status !== "cancelled" && (open.assignee_id === me.id
                 ? <ReceiptStep task={open} onDone={() => setOpen(null)} />
                 : <p className="mt-6 px-4 text-sm text-muted-foreground">Only the person assigned can finish this task by adding its receipt.</p>)}
+              {exec && !isPast(open) && (
+                <div className="px-4 pb-6 pt-4">
+                  <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmCancel(open)}><Ban /> Cancel task</Button>
+                </div>
+              )}
             </>
           )}
         </SheetContent>
@@ -146,14 +210,19 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
   );
 }
 
-function AddTask({ me, members, cats, onAdded }: {
+function AddTask({ me, members, cats, onAdded, prefill, onClosed }: {
   me: Member; members: Member[]; cats: { id: string; name: string; semester_id: string }[];
-  onAdded: (id: string, title: string) => void;
+  onAdded: (id: string, title: string) => void; prefill?: Task | null | undefined; onClosed?: () => void;
 }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [open, setOpenRaw] = useState(!!prefill);
+  const setOpen = (o: boolean) => { setOpenRaw(o); if (!o) onClosed?.(); };
   const empty = { title: "", assignee: "", category: "", limit: "", due: "", notes: "" };
-  const [f, setF] = useState(empty);
+  const [f, setF] = useState(prefill ? {
+    title: prefill.title, assignee: members.some((m) => m.id === prefill.assignee_id) ? prefill.assignee_id ?? "" : "",
+    category: prefill.category_id ?? "", limit: prefill.limit_cents ? (prefill.limit_cents / 100).toFixed(2) : "",
+    due: "", notes: prefill.notes,
+  } : empty);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {

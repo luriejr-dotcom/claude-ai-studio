@@ -32,7 +32,7 @@ use the editor.
 ## Club Ledger rules
 - Money is stored and computed as integer cents (helpers in src/lib/money.ts); never floats — avoids rounding errors.
 - Club/role access is enforced in Postgres RLS via my_club_id()/is_exec()/my_member_id() security-definer helpers; UI checks are cosmetic only.
-- Officer task edits and post-receipt delegation are blocked by the task_guard trigger, so the rule holds for any client.
+- task_guard trigger locks done/cancelled tasks, allows cancel only for execs, and blocks officer detail edits and post-receipt delegation, so rules hold for any client.
 - Officer invites go through the inviteOfficer server fn (exec check, then admin invite); invitees land on /reset-password and claim_membership links them by email.
 
 ## Receipts
