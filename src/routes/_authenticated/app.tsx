@@ -10,8 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchMe, isExecRole, meQuery } from "@/lib/club";
 import { TasksScreen } from "@/components/club/TasksScreen";
 import { BudgetScreen } from "@/components/club/BudgetScreen";
+import { TransactionsScreen } from "@/components/club/TransactionsScreen";
 import { TeamSheet } from "@/components/club/TeamSheet";
-import { Empty } from "@/components/club/bits";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -166,9 +166,7 @@ function Shell({ me }: { me: Me }) {
       <div key={screen} className={dir === 1 ? "animate-slide-right" : "animate-slide-left"}>
         {screen === "Tasks" && <TasksScreen me={me} exec={exec} />}
         {screen === "Budget" && <BudgetScreen />}
-        {screen === "Transactions" && (
-          <div className="surface"><Empty title="Transactions are next" line="Receipt reading with Claude lands here soon." /></div>
-        )}
+        {screen === "Transactions" && <TransactionsScreen />}
       </div>
 
       {exec && <TeamSheet open={team} onOpenChange={setTeam} />}
