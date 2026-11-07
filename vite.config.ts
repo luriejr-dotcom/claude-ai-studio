@@ -12,7 +12,7 @@ import { loadEnv } from "vite";
 import path from "node:path";
 
 // Server secrets remain in process.env; only the wrapper's VITE_* values are defined for clients.
-Object.assign(process.env, loadEnv(process.env.NODE_ENV || "development", process.cwd(), ""));
+Object.assign(process.env, loadEnv(process.env['NODE_ENV'] || "development", process.cwd(), ""));
 
 export default defineConfig({
   vite: {

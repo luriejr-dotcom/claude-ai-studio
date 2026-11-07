@@ -32,7 +32,7 @@ function TaskAssigned({ title = 'Your club task', assignedBy = 'Your club', limi
 
 export const template = {
   component: TaskAssigned,
-  subject: (data) => `New task: ${typeof data.title === 'string' ? data.title : 'Your club task'}`,
+  subject: (data) => `New task: ${typeof data['title'] === 'string' ? data['title'] : 'Your club task'}`,
   displayName: 'Task assigned',
   previewData: {
     title: 'Pick up meeting supplies',
