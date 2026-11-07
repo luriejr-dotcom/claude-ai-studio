@@ -267,6 +267,7 @@ export type Database = {
           paid_by: string | null
           paid_method: Database["public"]["Enums"]["pay_method"] | null
           paid_reference: string | null
+          preferred_method: string | null
           purchase_date: string
           reason: string
           receipt_hash: string | null
@@ -295,6 +296,7 @@ export type Database = {
           paid_by?: string | null
           paid_method?: Database["public"]["Enums"]["pay_method"] | null
           paid_reference?: string | null
+          preferred_method?: string | null
           purchase_date: string
           reason?: string
           receipt_hash?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           paid_by?: string | null
           paid_method?: Database["public"]["Enums"]["pay_method"] | null
           paid_reference?: string | null
+          preferred_method?: string | null
           purchase_date?: string
           reason?: string
           receipt_hash?: string | null
@@ -666,6 +669,23 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_task_with_receipt_v3: {
+        Args: {
+          _ai_date?: string
+          _ai_merchant?: string
+          _ai_note?: string
+          _ai_total_cents?: number
+          _amount_cents: number
+          _merchant: string
+          _paid_own?: boolean
+          _preferred_method?: string
+          _purchase_date: string
+          _receipt_hash?: string
+          _receipt_path: string
+          _task_id: string
+        }
+        Returns: Json
+      }
       create_club: {
         Args: { _club_name: string; _name: string }
         Returns: string
@@ -721,6 +741,23 @@ export type Database = {
         }
         Returns: string
       }
+      submit_reimbursement_v2: {
+        Args: {
+          _ai_date?: string
+          _ai_merchant?: string
+          _ai_note?: string
+          _ai_total_cents?: number
+          _amount_cents: number
+          _category_id: string
+          _merchant: string
+          _preferred_method: string
+          _purchase_date: string
+          _reason: string
+          _receipt_hash?: string
+          _receipt_path: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       flag_severity: "high" | "medium" | "low"
@@ -733,6 +770,8 @@ export type Database = {
         | "check"
         | "club_card_refund"
         | "other"
+        | "wire"
+        | "paypal"
       reimb_status: "submitted" | "approved" | "denied" | "paid"
       task_status: "assigned" | "receipt_uploaded" | "done" | "cancelled"
     }
@@ -872,6 +911,8 @@ export const Constants = {
         "check",
         "club_card_refund",
         "other",
+        "wire",
+        "paypal",
       ],
       reimb_status: ["submitted", "approved", "denied", "paid"],
       task_status: ["assigned", "receipt_uploaded", "done", "cancelled"],

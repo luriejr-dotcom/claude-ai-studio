@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { supabase } from "@/integrations/supabase/client";
 import { categoriesQuery, membersQuery } from "@/lib/club";
 import { formatCents } from "@/lib/money";
-import { EMPTY_REIMB, filterReimb, METHOD_LABEL, reimbSummary, STATUS_LABEL, type PayMethod, type Reimb, type ReimbFilters, type ReimbStatus } from "@/lib/reimb";
+import { EMPTY_REIMB, filterReimb, isRepaymentMethod, METHOD_LABEL, reimbSummary, STATUS_LABEL, type PayMethod, type Reimb, type ReimbFilters, type ReimbStatus } from "@/lib/reimb";
 import { ReceiptStep } from "./ReceiptStep";
 import { Avatar, Empty } from "./bits";
 import { cn } from "@/lib/utils";
@@ -150,6 +150,7 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-2"><span className="truncate font-medium">{r.merchant || "Purchase"}</span><ReimbBadge status={r.status} /></span>
                     <span className="block truncate text-xs text-muted-foreground">{exec && `${mName[r.member_id] ?? "—"} · `}{fmt(r.created_at)} · {r.reason}</span>
+                    {r.preferred_method && isRepaymentMethod(r.preferred_method) && <span className="block text-xs text-muted-foreground">Requested via {METHOD_LABEL[r.preferred_method]}</span>}
                   </span>
                   <span className="font-display font-semibold tabular-nums">{formatCents(r.amount_cents)}</span>
                 </button>
@@ -207,6 +208,7 @@ function DetailSheet({ r, onClose, exec, mName, cName, onApprove, onDeny, onPay 
             <dl className="mt-5 space-y-3 px-4 text-sm">
               <KV k="Person" v={mName[r.member_id] ?? "—"} />
               <KV k="Reason" v={r.reason} />
+              <KV k="Preferred repayment" v={r.preferred_method && isRepaymentMethod(r.preferred_method) ? METHOD_LABEL[r.preferred_method] : "Not specified"} />
               <KV k="Category" v={cName[r.category_id ?? ""] ?? "—"} />
               <KV k="Purchase date" v={r.purchase_date} />
               <KV k="Requested" v={fmt(r.created_at)} />
@@ -271,6 +273,7 @@ function PayDialog({ r, onClose, onPay, busy }: { r: Reimb | null; onClose: () =
         <DialogHeader>
           <DialogTitle>Mark as paid</DialogTitle>
           <DialogDescription>Pay {r && formatCents(r.amount_cents)} outside the app first. This only records that it happened.</DialogDescription>
+          {r?.preferred_method && isRepaymentMethod(r.preferred_method) && <p className="text-sm">Requested repayment: {METHOD_LABEL[r.preferred_method]}</p>}
         </DialogHeader>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(METHOD_LABEL) as PayMethod[]).map((m) => (

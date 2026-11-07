@@ -1,4 +1,7 @@
 # Club Ledger roadmap
+## Reimbursement approval and repayment preferences
+- [x] Fix approval rejecting reimbursement-sourced purchases; verified signed-in approval of the reported request
+- [x] Save and display preferred repayment methods for standalone and task requests; selector and method tests passed
 ## Demo and polish
 - [x] Exec-only empty-club demo loader and demo-only reset with fictional people, Fall 2026 budget, 40 purchases, open/past tasks and a waiting reimbursement
 - [x] Phone layouts without horizontal overflow, in-app dialogs and loading skeletons
