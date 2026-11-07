@@ -35,8 +35,8 @@ export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }
 
   async function pick(file?: File) {
     if (!file) return;
-    if (!TYPES.includes(file.type)) return toast.error("Use a JPEG, PNG, WebP or GIF photo");
-    if (file.size > MAX) return toast.error("That photo is over 5 MB");
+    if (!TYPES.includes(file.type)) { toast.error("Use a JPEG, PNG, WebP or GIF photo"); return; }
+    if (file.size > MAX) { toast.error("That photo is over 5 MB"); return; }
     setUploading(true);
     try {
       const blob = await shrink(file);
