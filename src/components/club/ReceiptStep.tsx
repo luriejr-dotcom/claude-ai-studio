@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import type { Task } from "@/lib/club";
+import type { Category, Task } from "@/lib/club";
+import { Textarea } from "@/components/ui/textarea";
 import { formatCents, parseDollarsToCents } from "@/lib/money";
 import { readReceipt } from "@/lib/receipt.functions";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,15 @@ type Field = { ai: string; value: string; confirmed: boolean; editing: boolean }
 const fresh = (ai: string): Field => ({ ai, value: ai, confirmed: false, editing: ai === "" });
 type FlagOut = { rule: string; severity: string; detail: string };
 
-export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }) {
+/**
+ * Receipt photo → AI read → "is everything correct?" confirm.
+ * With a task: finishes the task (and asks how it was paid). Without: standalone reimbursement request.
+ */
+export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task | undefined; clubId?: string; cats?: Category[]; onDone: () => void }) {
+  const standalone = !task;
+  const [paidOwn, setPaidOwn] = useState<boolean | null>(standalone ? true : null);
+  const [category, setCategory] = useState("");
+  const [why, setWhy] = useState("");
   const qc = useQueryClient();
   const read = useServerFn(readReceipt);
   const [path, setPath] = useState<string | null>(null);
@@ -51,7 +60,7 @@ export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }
     try {
       const blob = await shrink(file);
       const ext = blob.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "img");
-      const p = `${task.club_id}/${task.id}/${crypto.randomUUID()}.${ext}`;
+      const p = task ? `${task.club_id}/${task.id}/${crypto.randomUUID()}.${ext}` : `${clubId}/reimbursements/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("receipts").upload(p, blob, { contentType: blob.type });
       if (error) throw error;
       if (path) await supabase.storage.from("receipts").remove([path]);
@@ -81,13 +90,22 @@ export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }
   const set = (k: "merchant" | "date" | "total", patch: Partial<Field>) => setF((p) => (p ? { ...p, [k]: { ...p[k], ...patch } } : p));
   const ok = (x: Field, valid: boolean) => valid && (x.confirmed || x.editing);
   const cents = f ? parseDollarsToCents(f.total.value) : null;
-  const left = f ? [ok(f.merchant, !!f.merchant.value.trim()), ok(f.date, !!f.date.value), ok(f.total, !!cents && cents > 0)].filter((v) => !v).length : 3;
+  const left = f ? [ok(f.merchant, !!f.merchant.value.trim()), ok(f.date, !!f.date.value), ok(f.total, !!cents && cents > 0), paidOwn !== null,
+    ...(standalone ? [!!category, !!why.trim()] : [])].filter((v) => !v).length : 3;
 
   const finish = useMutation({
     mutationFn: async () => {
       const aiTotal = f!.total.ai ? parseDollarsToCents(f!.total.ai) : null;
-      const { data, error } = await supabase.rpc("complete_task_with_receipt", {
-        _task_id: task.id, _merchant: f!.merchant.value, _purchase_date: f!.date.value, _amount_cents: cents!, _receipt_path: path!,
+      const ai = { _ai_merchant: f!.merchant.ai, _ai_date: f!.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash };
+      if (!task) {
+        const { error } = await supabase.rpc("submit_reimbursement", {
+          _merchant: f!.merchant.value, _purchase_date: f!.date.value, _amount_cents: cents!, _receipt_path: path!, _category_id: category, _reason: why.trim(), ...ai,
+        } as never);
+        if (error) throw error;
+        return [] as FlagOut[];
+      }
+      const { data, error } = await supabase.rpc("complete_task_with_receipt_v2", {
+        _paid_own: paidOwn!, _task_id: task.id, _merchant: f!.merchant.value, _purchase_date: f!.date.value, _amount_cents: cents!, _receipt_path: path!,
         _ai_merchant: f!.merchant.ai, _ai_date: f!.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash,
       } as never);
       if (error) throw error;
@@ -101,7 +119,9 @@ export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }
     return (
       <div className="animate-fade-up mt-6 space-y-4 px-4">
         <div className="flex items-center gap-2 font-display text-2xl font-bold"><PartyPopper className="size-6 text-primary" /> Done</div>
-        <p className="text-sm text-muted-foreground">The receipt is saved and the purchase was added.</p>
+        <p className="text-sm text-muted-foreground">
+          {standalone ? "Your reimbursement request was sent to the President and Treasurer." : paidOwn ? "The purchase was added and your reimbursement request was sent." : "The receipt is saved and the purchase was added."}
+        </p>
         {done.length > 0 && (
           <div className="rounded-2xl border border-border bg-secondary/50 p-4">
             <div className="font-semibold">Heads up for the treasurer</div>
@@ -136,8 +156,33 @@ export function ReceiptStep({ task, onDone }: { task: Task; onDone: () => void }
           <ConfirmField label="Store" f={f.merchant} onChange={(p) => set("merchant", p)} />
           <ConfirmField label="Date" type="date" f={f.date} onChange={(p) => set("date", p)} />
           <ConfirmField label="Total paid" f={f.total} onChange={(p) => set("total", p)} />
+          {standalone ? (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="rb-cat">Category</Label>
+                <select id="rb-cat" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <option value="">Pick one</option>
+                  {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="rb-why">Reason</Label>
+                <Textarea id="rb-why" rows={2} maxLength={300} value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Bought extra ice for the formal" />
+              </div>
+            </>
+          ) : (
+            <fieldset className="rounded-xl border border-border p-3">
+              <legend className="px-1 text-xs uppercase tracking-wide text-muted-foreground">How was this paid?</legend>
+              <div className="grid gap-2">
+                {([[false, "Club card / club funds"], [true, "My own money (request reimbursement)"]] as const).map(([v, l]) => (
+                  <Button key={l} type="button" variant={paidOwn === v ? "default" : "outline"} className="h-auto justify-start whitespace-normal py-2 text-left" onClick={() => setPaidOwn(v)}>{l}</Button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          <p className="text-xs text-muted-foreground">Club Ledger only tracks reimbursements. Never enter bank or card details.</p>
           <Button className="w-full" size="lg" disabled={left > 0 || finish.isPending} onClick={() => finish.mutate()}>
-            {left > 0 ? `Check ${left} more to finish` : finish.isPending ? "Saving…" : "Mark done"}
+            {left > 0 ? `${left} more to go` : finish.isPending ? "Saving…" : standalone ? "Send request" : "Mark done"}
           </Button>
         </>
       )}
