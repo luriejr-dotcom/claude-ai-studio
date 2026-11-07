@@ -129,7 +129,7 @@ function verdict(ai: string | null, confirmed: string, same: boolean) {
   if (ai == null || ai === "") return "Typed by the member";
   return same ? "AI read it correctly" : `Fixed by the member (AI read ${ai} → confirmed ${confirmed})`;
 }
-function aiChecks(t: Txn) {
+export function aiChecks(t: Txn) {
   return [
     { k: "Store", v: verdict(t.ai_merchant, t.merchant, (t.ai_merchant ?? "").toLowerCase() === t.merchant.toLowerCase()) },
     { k: "Date", v: verdict(t.ai_date, t.purchase_date, t.ai_date === t.purchase_date) },
