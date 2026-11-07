@@ -176,8 +176,8 @@
 @keyframes slide-in-left { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: none; } }
 @utility animate-fade-up { animation: none; }
 @utility animate-pop { animation: pop 0.35s ease-out; }
-@utility animate-slide-right { animation: none; }
-@utility animate-slide-left { animation: none; }
+@utility animate-slide-right { animation: slide-in-right 0.2s ease-out both; }
+@utility animate-slide-left { animation: slide-in-left 0.2s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
