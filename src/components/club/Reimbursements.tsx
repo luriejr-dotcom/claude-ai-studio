@@ -15,6 +15,7 @@ import { EMPTY_REIMB, filterReimb, METHOD_LABEL, reimbSummary, STATUS_LABEL, typ
 import { ReceiptStep } from "./ReceiptStep";
 import { Avatar, Empty } from "./bits";
 import { cn } from "@/lib/utils";
+import { LoadingRows } from './LoadingRows';
 
 export const reimbQuery = {
   queryKey: ["reimbursements"],
@@ -26,7 +27,7 @@ export const reimbQuery = {
 };
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-const sel = "h-9 rounded-md border border-input bg-background px-2 text-sm";
+const sel = "h-9 min-w-0 max-w-full rounded-md border border-input bg-background px-2 text-sm";
 const TONE: Record<ReimbStatus, string> = {
   submitted: "bg-warning/25 text-foreground",
   approved: "bg-secondary text-secondary-foreground",
@@ -58,11 +59,11 @@ export function ReimbCard({ onOpen }: { onOpen?: (() => void) | undefined }) {
   const s = reimbSummary(data);
   return (
     <section className="surface p-5">
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <h2 className="flex items-center gap-2 text-lg font-bold"><HandCoins className="size-5 text-primary" /> Reimbursements</h2>
         {onOpen && <Button variant="ghost" size="sm" onClick={onOpen}>Open list</Button>}
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+      <div className="mt-4 grid grid-cols-1 gap-3 min-[400px]:grid-cols-3 text-sm">
         <Stat k="Owed to members" v={formatCents(s.owedCents)} />
         <Stat k="Waiting for approval" v={String(s.waitingCount)} />
         <Stat k="Oldest waiting" v={s.oldestWaiting ? fmt(s.oldestWaiting) : "—"} />
@@ -76,7 +77,7 @@ function Stat({ k, v }: { k: string; v: string }) {
 
 export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: string }) {
   const qc = useQueryClient();
-  const { data = [] } = useQuery(reimbQuery);
+  const { data = [], isLoading } = useQuery(reimbQuery);
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const [f, setF] = useState<ReimbFilters>(EMPTY_REIMB);
@@ -116,12 +117,12 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <h2 className="text-xl font-bold">{exec ? "Reimbursements" : "My reimbursements"}</h2>
-        <Button size="sm" onClick={() => setAsking(true)}><Receipt /> Request reimbursement</Button>
+        <Button className="justify-self-start sm:justify-self-end" size="sm" onClick={() => setAsking(true)}><Receipt /> Request reimbursement</Button>
       </div>
       {exec && (
-        <div className="surface flex flex-wrap items-center gap-2 p-4">
+        <div className="surface grid min-w-0 grid-cols-2 items-center gap-2 p-4 sm:flex sm:flex-wrap">
           <select className={sel} value={f.status} onChange={set("status")} aria-label="Status">
             <option value="">Any status</option>
             {(Object.keys(STATUS_LABEL) as ReimbStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
@@ -130,20 +131,20 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
             <option value="">Everyone</option>
             {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
-          <Input type="date" className="h-9 w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
+          <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
           <span className="text-sm text-muted-foreground">to</span>
-          <Input type="date" className="h-9 w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
+          <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
           {dirty && <Button variant="ghost" size="sm" onClick={() => setF(EMPTY_REIMB)}><X /> Clear</Button>}
         </div>
       )}
 
       <div className="surface overflow-hidden">
-        {rows.length === 0 ? (
+        {isLoading ? <LoadingRows /> : rows.length === 0 ? (
           <Empty title={dirty ? "No matches" : "No reimbursement requests"} line={dirty ? "Try loosening the filters." : "Paid for something yourself? Request it back here."} />
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-muted/50">
+              <li key={r.id} className="grid min-w-0 gap-3 px-4 py-3 hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => setOpen(r)}>
                   <Avatar id={r.member_id} name={mName[r.member_id] ?? "?"} size={32} />
                   <span className="min-w-0 flex-1">
@@ -182,12 +183,16 @@ function DetailSheet({ r, onClose, exec, mName, cName, onApprove, onDeny, onPay 
   const { data: url } = useQuery({
     queryKey: ["reimbursements", "receipt", r?.receipt_path],
     enabled: !!r,
-    queryFn: async () => (await supabase.storage.from("receipts").createSignedUrl(r!.receipt_path, 3600)).data?.signedUrl ?? null,
+    queryFn: async () => {
+      if (!r) return null;
+      if (r.receipt_path === 'demo/receipt.svg') return '/demo/receipt.svg';
+      return (await supabase.storage.from("receipts").createSignedUrl(r.receipt_path, 3600)).data?.signedUrl ?? null;
+    },
   });
   const { data: flags = [] } = useQuery({
     queryKey: ["reimbursements", "flags", r?.id],
     enabled: !!r,
-    queryFn: async () => (await supabase.from("flags").select("*").eq("reimbursement_id", r!.id)).data ?? [],
+    queryFn: async () => r ? (await supabase.from("flags").select("*").eq("reimbursement_id", r.id)).data ?? [] : [],
   });
   return (
     <Sheet open={!!r} onOpenChange={(o) => { if (!o) { onClose(); setNote(""); } }}>
@@ -269,7 +274,7 @@ function PayDialog({ r, onClose, onPay, busy }: { r: Reimb | null; onClose: () =
         </DialogHeader>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(METHOD_LABEL) as PayMethod[]).map((m) => (
-            <Button key={m} type="button" variant={method === m ? "default" : "outline"} onClick={() => setMethod(m)}>{METHOD_LABEL[m]}</Button>
+            <Button className="h-auto min-h-9 whitespace-normal" key={m} type="button" variant={method === m ? "default" : "outline"} onClick={() => setMethod(m)}>{METHOD_LABEL[m]}</Button>
           ))}
         </div>
         <Label htmlFor="pay-ref">Reference note (optional)</Label>
@@ -285,5 +290,5 @@ function PayDialog({ r, onClose, onPay, busy }: { r: Reimb | null; onClose: () =
 }
 
 function KV({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-medium">{v}</dd></div>;
+  return <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="min-w-0 break-words text-right font-medium">{v}</dd></div>;
 }

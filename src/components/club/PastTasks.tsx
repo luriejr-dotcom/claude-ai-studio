@@ -32,14 +32,15 @@ function useReceiptUrls(paths: string[]) {
     enabled: key.length > 0,
     staleTime: 50 * 60_000,
     queryFn: async () => {
-      const { data } = await supabase.storage.from("receipts").createSignedUrls(key, 3600);
-      return Object.fromEntries((data ?? []).filter((d) => d.signedUrl).map((d) => [d.path, d.signedUrl]));
+      const real = key.filter(p => p !== 'demo/receipt.svg');
+      const data = real.length ? (await supabase.storage.from("receipts").createSignedUrls(real, 3600)).data : [];
+      return { ...Object.fromEntries((data ?? []).filter((d) => d.signedUrl).map((d) => [d.path, d.signedUrl])), ...(key.includes('demo/receipt.svg') ? { 'demo/receipt.svg': '/demo/receipt.svg' } : {}) };
     },
   }).data ?? {};
 }
 
 const fmtDay = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-const sel = "h-9 rounded-md border border-input bg-background px-2 text-sm";
+const sel = "h-9 min-w-0 max-w-full rounded-md border border-input bg-background px-2 text-sm";
 
 export function StatusBadge({ status }: { status: Task["status"] }) {
   const done = status === "done";
@@ -78,7 +79,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input className="pl-9" placeholder="Search by title" value={f.q} onChange={set("q")} aria-label="Search by title" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid min-w-0 grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
             {exec && (
               <select className={sel} value={f.member} onChange={set("member")} aria-label="Person">
                 <option value="">Everyone</option>
@@ -94,9 +95,9 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
               <option value="done">Done</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            <Input type="date" className="h-9 w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
+            <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.from} onChange={set("from")} aria-label="From date" />
             <span className="text-sm text-muted-foreground">to</span>
-            <Input type="date" className="h-9 w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
+            <Input type="date" className="h-9 min-w-0 w-full sm:w-auto" value={f.to} onChange={set("to")} aria-label="To date" />
             {dirty && <Button variant="ghost" size="sm" onClick={() => setF(EMPTY_PAST)}><X /> Clear</Button>}
           </div>
         </div>
@@ -120,7 +121,7 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
                       {url ? <img src={url} alt="" className="size-full object-cover" loading="lazy" /> : <ImageOff className="size-4 text-muted-foreground" />}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2"><span className="truncate font-medium">{t.title}</span><StatusBadge status={t.status} /></span>
+                      <span className="flex min-w-0 flex-wrap items-center gap-2"><span className="min-w-0 truncate font-medium">{t.title}</span><StatusBadge status={t.status} /></span>
                       <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span>{fmtDay(finishedDay(t))}</span>
                         {who && <span className="inline-flex items-center gap-1"><Avatar id={who.id} name={who.name} size={16} />{who.name}</span>}
@@ -200,5 +201,5 @@ export function PastTasksList({ tasks, members, cats, exec, filters = true, limi
 }
 
 function KV({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-medium">{v}</dd></div>;
+  return <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="min-w-0 break-words text-right font-medium">{v}</dd></div>;
 }
