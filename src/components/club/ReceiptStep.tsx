@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCents, parseDollarsToCents } from "@/lib/money";
 import { readReceipt } from "@/lib/receipt.functions";
 import { cn } from "@/lib/utils";
+import { isRepaymentMethod, METHOD_LABEL, type PayMethod } from "@/lib/reimb";
 
 const TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX = 5 * 1024 * 1024;
@@ -24,7 +25,9 @@ async function shrink(file: File): Promise<Blob> {
   const c = document.createElement("canvas");
   c.width = Math.round(img.width * scale);
   c.height = Math.round(img.height * scale);
-  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+  const context = c.getContext("2d");
+  if (!context) return file;
+  context.drawImage(img, 0, 0, c.width, c.height);
   return new Promise((res) => c.toBlob((b) => res(b ?? file), "image/jpeg", 0.85));
 }
 
@@ -41,6 +44,7 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
   const [paidOwn, setPaidOwn] = useState<boolean | null>(standalone ? true : null);
   const [category, setCategory] = useState("");
   const [why, setWhy] = useState("");
+  const [preferredMethod, setPreferredMethod] = useState<PayMethod | "">("");
   const qc = useQueryClient();
   const read = useServerFn(readReceipt);
   const [path, setPath] = useState<string | null>(null);
@@ -91,23 +95,26 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
   const ok = (x: Field, valid: boolean) => valid && (x.confirmed || x.editing);
   const cents = f ? parseDollarsToCents(f.total.value) : null;
   const left = f ? [ok(f.merchant, !!f.merchant.value.trim()), ok(f.date, !!f.date.value), ok(f.total, !!cents && cents > 0), paidOwn !== null,
+    ...(paidOwn ? [isRepaymentMethod(preferredMethod)] : []),
     ...(standalone ? [!!category, !!why.trim()] : [])].filter((v) => !v).length : 3;
 
   const finish = useMutation({
     mutationFn: async () => {
-      const aiTotal = f!.total.ai ? parseDollarsToCents(f!.total.ai) : null;
-      const ai = { _ai_merchant: f!.merchant.ai, _ai_date: f!.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash };
+      if (!f || cents === null || cents <= 0 || !path || paidOwn === null) throw new Error("Confirm the receipt details first");
+      if (paidOwn && !isRepaymentMethod(preferredMethod)) throw new Error("Choose how you want to be reimbursed");
+      const aiTotal = f.total.ai ? parseDollarsToCents(f.total.ai) : null;
+      const ai = { _ai_merchant: f.merchant.ai, _ai_date: f.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash };
       if (!task) {
-        const { error } = await supabase.rpc("submit_reimbursement", {
-          _merchant: f!.merchant.value, _purchase_date: f!.date.value, _amount_cents: cents!, _receipt_path: path!, _category_id: category, _reason: why.trim(), ...ai,
-        } as never);
+        const { error } = await supabase.rpc("submit_reimbursement_v2", {
+          _merchant: f.merchant.value, _purchase_date: f.date.value, _amount_cents: cents, _receipt_path: path, _category_id: category, _reason: why.trim(), _preferred_method: preferredMethod, ...ai,
+        });
         if (error) throw error;
         return [] as FlagOut[];
       }
-      const { data, error } = await supabase.rpc("complete_task_with_receipt_v2", {
-        _paid_own: paidOwn!, _task_id: task.id, _merchant: f!.merchant.value, _purchase_date: f!.date.value, _amount_cents: cents!, _receipt_path: path!,
-        _ai_merchant: f!.merchant.ai, _ai_date: f!.date.ai || undefined, _ai_total_cents: aiTotal ?? undefined, _ai_note: note, _receipt_hash: hash,
-      } as never);
+      const { data, error } = await supabase.rpc("complete_task_with_receipt_v3", {
+        _paid_own: paidOwn, _task_id: task.id, _merchant: f.merchant.value, _purchase_date: f.date.value, _amount_cents: cents, _receipt_path: path,
+        _preferred_method: paidOwn ? preferredMethod : undefined, ...ai,
+      });
       if (error) throw error;
       return ((data as { flags?: FlagOut[] } | null)?.flags ?? []);
     },
@@ -179,6 +186,15 @@ export function ReceiptStep({ task, clubId, cats = [], onDone }: { task?: Task |
                 ))}
               </div>
             </fieldset>
+          )}
+          {paidOwn && (
+            <div className="space-y-1.5">
+              <Label htmlFor="rb-method">How would you like to be reimbursed?</Label>
+              <select id="rb-method" className="h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm" value={preferredMethod} onChange={(e) => { const value = e.target.value; setPreferredMethod(isRepaymentMethod(value) ? value : ""); }}>
+                <option value="">Pick a method</option>
+                {Object.entries(METHOD_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </div>
           )}
           <p className="text-xs text-muted-foreground">Club Ledger only tracks reimbursements. Never enter bank or card details.</p>
           <Button className="w-full" size="lg" disabled={left > 0 || finish.isPending} onClick={() => finish.mutate()}>

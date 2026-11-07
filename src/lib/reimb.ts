@@ -5,7 +5,11 @@ export type ReimbStatus = Reimb["status"];
 export type PayMethod = NonNullable<Reimb["paid_method"]>;
 
 export const STATUS_LABEL: Record<ReimbStatus, string> = { submitted: "Waiting for approval", approved: "Approved · not paid", denied: "Denied", paid: "Paid" };
-export const METHOD_LABEL: Record<PayMethod, string> = { venmo: "Venmo", zelle: "Zelle", cash: "Cash", check: "Check", club_card_refund: "Club card refund", other: "Other" };
+export const METHOD_LABEL: Record<PayMethod, string> = { wire: "Wire transfer", venmo: "Venmo", paypal: "PayPal", zelle: "Zelle", cash: "Cash", check: "Check", club_card_refund: "Club card refund", other: "Other" };
+
+export function isRepaymentMethod(value: string): value is PayMethod {
+  return Object.hasOwn(METHOD_LABEL, value);
+}
 
 /** Budget card numbers: owed = approved but unpaid; waiting = submitted. */
 export function reimbSummary(rows: Pick<Reimb, "status" | "amount_cents" | "created_at">[]) {

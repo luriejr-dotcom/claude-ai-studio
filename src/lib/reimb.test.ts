@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { reimbSummary } from "./reimb";
+import { isRepaymentMethod, reimbSummary } from "./reimb";
 
 describe("reimbursement summary", () => {
+  it.each(["wire", "venmo", "paypal"])("allows requested repayment via %s", (method) => {
+    expect(isRepaymentMethod(method)).toBe(true);
+  });
+  it("rejects account details as a repayment method", () => {
+    expect(isRepaymentMethod("123456789")).toBe(false);
+  });
   const rows = [
     { status: "submitted" as const, amount_cents: 500, created_at: "2026-03-05T00:00:00Z" },
     { status: "submitted" as const, amount_cents: 700, created_at: "2026-03-01T00:00:00Z" },
