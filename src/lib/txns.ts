@@ -27,12 +27,12 @@ export function filterTxns(txns: Txn[], f: TxnFilters, names: Record<string, str
 const cell = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
 /** CSV of the given rows. Amount written from integer cents, e.g. 1234 -> 12.34. */
-export function txnsToCsv(rows: Txn[], members: Record<string, string>, cats: Record<string, string>): string {
-  const head = ["Date", "Merchant", "Amount", "Category", "Person", "Source", "Added"];
+export function txnsToCsv(rows: Txn[], members: Record<string, string>, cats: Record<string, string>, reimb: Record<string, string> = {}): string {
+  const head = ["Date", "Merchant", "Amount", "Category", "Person", "Source", "Added", "Reimbursement status"];
   const lines = rows.map((t) => {
     const a = Math.abs(t.amount_cents);
     const amt = `${t.amount_cents < 0 ? "-" : ""}${Math.floor(a / 100)}.${String(a % 100).padStart(2, "0")}`;
-    return [t.purchase_date, t.merchant, amt, cats[t.category_id ?? ""] ?? "", members[t.member_id ?? ""] ?? "", t.source, t.created_at]
+    return [t.purchase_date, t.merchant, amt, cats[t.category_id ?? ""] ?? "", members[t.member_id ?? ""] ?? "", t.source, t.created_at, reimb[t.id] ?? ""]
       .map((v) => cell(String(v))).join(",");
   });
   return [head.join(","), ...lines].join("\n");

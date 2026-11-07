@@ -10,6 +10,8 @@ import { categoriesQuery, membersQuery, tasksQuery, type Txn } from "@/lib/club"
 import { formatCents } from "@/lib/money";
 import { EMPTY_FILTERS, filterTxns, txnsToCsv, type TxnFilters } from "@/lib/txns";
 import { Avatar, CategoryIcon, Empty } from "./bits";
+import { reimbQuery } from "./Reimbursements";
+import { STATUS_LABEL } from "@/lib/reimb";
 
 const txnsQuery = {
   queryKey: ["transactions"],
@@ -27,6 +29,8 @@ export function TransactionsScreen() {
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const { data: tasks = [] } = useQuery(tasksQuery);
+  const { data: reimbs = [] } = useQuery(reimbQuery);
+  const reimbByTxn = useMemo(() => Object.fromEntries(reimbs.filter((r) => r.transaction_id).map((r) => [r.transaction_id!, STATUS_LABEL[r.status]])), [reimbs]);
   const [f, setF] = useState<TxnFilters>(EMPTY_FILTERS);
   const [open, setOpen] = useState<Txn | null>(null);
 
@@ -39,7 +43,7 @@ export function TransactionsScreen() {
   const dirty = JSON.stringify(f) !== JSON.stringify(EMPTY_FILTERS);
 
   function exportCsv() {
-    const blob = new Blob([txnsToCsv(rows, mName, cName)], { type: "text/csv" });
+    const blob = new Blob([txnsToCsv(rows, mName, cName, reimbByTxn)], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -106,6 +110,7 @@ export function TransactionsScreen() {
                 <Row k="Person" v={open.member_id ? <span className="inline-flex items-center gap-2"><Avatar id={open.member_id} name={mName[open.member_id] ?? "?"} size={22} />{mName[open.member_id] ?? "—"}</span> : "—"} />
                 <Row k="Task" v={tasks.find((x) => x.id === open.task_id)?.title ?? "—"} />
                 <Row k="Source" v={open.source} />
+                {reimbByTxn[open.id] && <Row k="Reimbursement" v={reimbByTxn[open.id]} />}
                 <Row k="Added" v={new Date(open.created_at).toLocaleString()} />
                 {open.ai_corrected && <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Sparkles className="size-3.5" /> Details read from the receipt were corrected by hand.</p>}
               </dl>

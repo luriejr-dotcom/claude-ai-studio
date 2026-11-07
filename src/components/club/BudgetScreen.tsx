@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { budgetQuery, categoriesQuery, isOverdue, meQuery, tasksQuery, type Category, type Semester } from "@/lib/club";
 import { budgetHealth, formatCents, HEALTH_LABEL, parseDollarsToCents, percentUsed, splitCents, type Health } from "@/lib/money";
 import { CategoryIcon, Empty } from "./bits";
+import { ReimbCard } from "./Reimbursements";
 import { cn } from "@/lib/utils";
 
 const PILL: Record<Health, string> = {
@@ -22,7 +23,7 @@ const PILL: Record<Health, string> = {
 const BAR: Record<Health, string> = { green: "bg-success", yellow: "bg-warning", red: "bg-destructive" };
 const SEV = { high: 0, medium: 1, low: 2 } as const;
 
-export function BudgetScreen() {
+export function BudgetScreen({ onOpenReimbursements }: { onOpenReimbursements?: () => void }) {
   const { data } = useQuery(budgetQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const { data: tasks = [] } = useQuery(tasksQuery);
@@ -83,6 +84,8 @@ export function BudgetScreen() {
           </div>
         </div>
       </section>
+
+      <ReimbCard onOpen={onOpenReimbursements} />
       <p className="px-1 text-xs text-muted-foreground">
         Red if spent is over budget. Yellow at 80% spent, or if spent plus promised tasks would go over. Otherwise green.
       </p>

@@ -38,3 +38,5 @@ use the editor.
 ## Receipts
 - Receipt reading runs in the readReceipt server fn (src/lib/receipt.functions.ts), not an edge function; AI output is re-validated in code (receipt-check.ts) and failures fall back to manual entry so the app works without AI.
 - Audit flags are computed in SQL inside complete_task_with_receipt from confirmed values, so they can't be skipped by a client.
+- Reimbursements are written only via security-definer RPCs (submit_reimbursement, complete_task_with_receipt_v2, decide_reimbursement, mark_reimbursement_paid); the table is SELECT-only for clients so status rules and budget transactions can't be bypassed. No bank/card data is ever stored.
+- "Waiting >7 days" reimbursement flags are raised by flag_stale_reimbursements(), called when an exec opens the app (no scheduler).
