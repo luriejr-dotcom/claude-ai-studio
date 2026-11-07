@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/app")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { dup?: string } => ({ dup: typeof s.dup === "string" ? s.dup : undefined }),
+  validateSearch: (s: Record<string, unknown>): { dup?: string | undefined } => ({ dup: typeof s["dup"] === "string" ? s["dup"] : undefined }),
   component: AppPage,
 });
 

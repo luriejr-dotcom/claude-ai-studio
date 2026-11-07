@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 const fmtDate = (d: string) =>
   new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: boolean; dupId?: string; onDupUsed?: () => void }) {
+export function TasksScreen({ me, exec, dupId, onDupUsed }: { me: Member; exec: boolean; dupId?: string | undefined; onDupUsed?: () => void }) {
   const qc = useQueryClient();
   const { data: tasks = [] } = useQuery(tasksQuery);
   const { data: members = [] } = useQuery(membersQuery);
@@ -212,7 +212,7 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
 
 function AddTask({ me, members, cats, onAdded, prefill, onClosed }: {
   me: Member; members: Member[]; cats: { id: string; name: string; semester_id: string }[];
-  onAdded: (id: string, title: string) => void; prefill?: Task | null; onClosed?: () => void;
+  onAdded: (id: string, title: string) => void; prefill?: Task | null | undefined; onClosed?: () => void;
 }) {
   const qc = useQueryClient();
   const [open, setOpenRaw] = useState(!!prefill);

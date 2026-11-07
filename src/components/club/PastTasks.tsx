@@ -51,8 +51,8 @@ export function StatusBadge({ status }: { status: Task["status"] }) {
 }
 
 export function PastTasksList({ tasks, members, cats, exec, filters = true, limit, onDuplicate }: {
-  tasks: Task[]; members: Member[]; cats: Category[]; exec: boolean; filters?: boolean; limit?: number;
-  onDuplicate?: (t: Task) => void;
+  tasks: Task[]; members: Member[]; cats: Category[]; exec: boolean; filters?: boolean | undefined; limit?: number | undefined;
+  onDuplicate?: ((t: Task) => void) | undefined;
 }) {
   const { data: extras } = useQuery(pastExtrasQuery);
   const [f, setF] = useState<PastFilters>(EMPTY_PAST);
