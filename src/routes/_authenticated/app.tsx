@@ -182,7 +182,7 @@ function Shell({ me }: { me: Me }) {
           </div>
         </nav>
       ) : (
-        <h1 className="mb-6 flex items-center gap-2 text-3xl font-bold">Your tasks {tasksAttention && <AttentionDot />}</h1>
+        <h1 className="mb-6 text-3xl font-bold">Your tasks</h1>
       )}
 
       <div key={screen} className={dir === 1 ? "animate-slide-right" : "animate-slide-left"}>
