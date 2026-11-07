@@ -173,14 +173,14 @@ function AddTask({ me, members, cats, onAdded }: {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const limit = f.limit ? parseDollarsToCents(f.limit) : 0;
-    if (limit === null) return toast.error("Spending limit should look like 25 or 25.50");
+    if (limit === null) { toast.error("Spending limit should look like 25 or 25.50"); return; }
     const cat = cats.find((c) => c.id === f.category) ?? cats[0];
     let semester_id = cat?.semester_id;
     if (!semester_id) {
       const { data } = await supabase.from("semesters").select("id").order("start_date", { ascending: false }).limit(1);
       semester_id = data?.[0]?.id;
     }
-    if (!semester_id) return toast.error("Set up a semester first");
+    if (!semester_id) { toast.error("Set up a semester first"); return; }
     setBusy(true);
     const { data, error } = await supabase.from("tasks").insert({
       club_id: me.club_id, semester_id, title: f.title.trim(), notes: f.notes,
@@ -188,7 +188,7 @@ function AddTask({ me, members, cats, onAdded }: {
       limit_cents: limit, due_date: f.due || null,
     }).select("id").single();
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     onAdded(data.id, f.title.trim());
     setF(empty);
     setOpen(false);

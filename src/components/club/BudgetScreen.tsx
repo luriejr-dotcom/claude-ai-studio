@@ -172,7 +172,7 @@ function FlagRow({ flag }: { flag: { id: string; severity: "high" | "medium" | "
   const [note, setNote] = useState("");
   const m = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("flags").update({ status: "reviewed", reviewed_by: me?.id, review_note: note || null }).eq("id", flag.id);
+      const { error } = await supabase.from("flags").update({ status: "reviewed", reviewed_by: me?.id ?? null, review_note: note || null }).eq("id", flag.id);
       if (error) throw error;
       if (me) await supabase.from("activity_log").insert({ club_id: me.club_id, actor_id: me.id, action: "flag_reviewed", detail: flag.rule });
     },
@@ -209,8 +209,8 @@ function EditBudget({ open, onOpenChange, semester, cats }: { open: boolean; onO
   const invalid = total === null || catCents.some((v) => v === null);
 
   async function save() {
-    if (invalid || total === null) return toast.error("Amounts should look like 500 or 500.00");
-    if (sum > total) return toast.error("Task type budgets add up to more than the semester total");
+    if (invalid || total === null) { toast.error("Amounts should look like 500 or 500.00"); return; }
+    if (sum > total) { toast.error("Task type budgets add up to more than the semester total"); return; }
     setBusy(true);
     try {
       // Lower categories first so the running total never exceeds the semester budget.
@@ -233,7 +233,7 @@ function EditBudget({ open, onOpenChange, semester, cats }: { open: boolean; onO
   async function addCat() {
     if (!newCat.trim()) return;
     const { error } = await supabase.from("categories").insert({ club_id: semester.club_id, semester_id: semester.id, name: newCat.trim(), budget_cents: 0 });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setNewCat("");
     qc.invalidateQueries({ queryKey: ["categories"] });
   }

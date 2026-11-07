@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { isExecRole, meQuery } from "@/lib/club";
+import { fetchMe, isExecRole, meQuery } from "@/lib/club";
 import { TasksScreen } from "@/components/club/TasksScreen";
 import { BudgetScreen } from "@/components/club/BudgetScreen";
 import { TeamSheet } from "@/components/club/TeamSheet";
@@ -49,9 +49,10 @@ function CreateClub() {
     if (tried.current) return;
     tried.current = true;
     supabase.auth.getUser().then(async ({ data }) => {
-      const md = data.user?.user_metadata ?? {};
-      if (md.pending_club && md.full_name) {
-        const { error } = await supabase.rpc("create_club", { _club_name: md.pending_club, _name: md.full_name });
+      const md = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const pc = md["pending_club"], fn = md["full_name"];
+      if (typeof pc === "string" && pc && typeof fn === "string" && fn) {
+        const { error } = await supabase.rpc("create_club", { _club_name: pc, _name: fn });
         if (!error) qc.invalidateQueries();
       }
     });
@@ -62,7 +63,7 @@ function CreateClub() {
     setBusy(true);
     const { error } = await supabase.rpc("create_club", { _club_name: club, _name: name });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries();
   }
   return (
@@ -79,7 +80,7 @@ function CreateClub() {
   );
 }
 
-type Me = NonNullable<Awaited<ReturnType<typeof meQuery.queryFn>>>;
+type Me = NonNullable<Awaited<ReturnType<typeof fetchMe>>>;
 
 function Shell({ me }: { me: Me }) {
   const exec = isExecRole(me.role);

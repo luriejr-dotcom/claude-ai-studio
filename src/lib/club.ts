@@ -12,9 +12,7 @@ export type Flag = T["flags"]["Row"];
 
 export const isExecRole = (r?: string | null) => r === "president" || r === "treasurer";
 
-export const meQuery = queryOptions({
-  queryKey: ["me"],
-  queryFn: async () => {
+export async function fetchMe() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return null;
     await supabase.rpc("claim_membership");
@@ -25,8 +23,9 @@ export const meQuery = queryOptions({
       .eq("active", true)
       .maybeSingle();
     return data;
-  },
-});
+}
+
+export const meQuery = queryOptions({ queryKey: ["me"], queryFn: fetchMe });
 
 export const membersQuery = queryOptions({
   queryKey: ["members"],
