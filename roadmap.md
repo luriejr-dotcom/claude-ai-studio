@@ -8,8 +8,9 @@
 - [x] Task checkbox opens receipt step; finishing only via backend receipt confirmation
 - [x] Claude reads receipt, confirm step, AI-vs-confirmed audit trail, audit flags
 
-## Email notifications (blocked: needs a sender domain the user owns)
-- [ ] Set up email domain (user)
+## Email notifications (sending waits for DNS verification)
+- [x] Configure sender domain and managed email sending infrastructure
+- [ ] Verify sender domain DNS (external verification pending)
 - [ ] Assignment/delegation, due-tomorrow/overdue (daily 9am ET), receipt-ready, flagged completion, reimbursement new/approved/denied/paid emails
 - [ ] Weekly exec summary (Mondays 9am ET)
 - [ ] Exec messages on tasks/reimbursements (emailed + timeline), one-tap Remind (1/day)
