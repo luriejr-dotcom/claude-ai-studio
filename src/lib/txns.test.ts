@@ -22,4 +22,4 @@ describe("transactions", () => {
     const csv = txnsToCsv([t({ amount_cents: 123456, merchant: "A, B" })], { m1: "Ana" }, { c1: "Food" });
     expect(csv.split("\n")[1]).toBe('2026-01-01,"A, B",1234.56,Food,Ana,manual,2026-01-01T00:00:00Z');
   });
-}) as Txn;
+});
