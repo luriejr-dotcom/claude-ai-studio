@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { supabase } from "@/integrations/supabase/client";
 import { categoriesQuery, isOverdue, membersQuery, tasksQuery, type Member, type Task } from "@/lib/club";
 import { formatCents, parseDollarsToCents } from "@/lib/money";
+import { ReceiptStep } from "./ReceiptStep";
 import { Avatar, CategoryIcon, Empty } from "./bits";
 import { cn } from "@/lib/utils";
 
@@ -23,29 +24,12 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
   const { data: members = [] } = useQuery(membersQuery);
   const { data: cats = [] } = useQuery(categoriesQuery);
   const [open, setOpen] = useState<Task | null>(null);
-  const [justDone, setJustDone] = useState<string | null>(null);
 
   const memberById = new Map(members.map((m) => [m.id, m]));
   const catById = new Map(cats.map((c) => [c.id, c]));
 
   const log = (action: string, detail: string, task_id: string) =>
     supabase.from("activity_log").insert({ club_id: me.club_id, actor_id: me.id, action, detail, task_id });
-
-  const toggle = useMutation({
-    mutationFn: async (t: Task) => {
-      const status = t.status === "done" ? "assigned" : "done";
-      const { error } = await supabase.from("tasks").update({ status }).eq("id", t.id);
-      if (error) throw error;
-      if (status === "done") await log("task_completed", t.title, t.id);
-      return status;
-    },
-    onSuccess: (status, t) => {
-      if (status === "done") setJustDone(t.id);
-      qc.invalidateQueries({ queryKey: ["tasks"] });
-      qc.invalidateQueries({ queryKey: ["budget"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const delegate = useMutation({
     mutationFn: async ({ t, m }: { t: Task; m: Member }) => {
@@ -80,12 +64,11 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
           return (
             <li key={t.id} className="animate-fade-up flex items-center gap-3 px-4 py-3 hover:bg-muted/50" style={{ animationDelay: `${i * 25}ms` }}>
               <button
-                aria-label={done ? `Mark ${t.title} not done` : `Mark ${t.title} done`}
-                onClick={() => toggle.mutate(t)}
+                aria-label={done ? `${t.title} is done` : `Finish ${t.title} with a receipt`}
+                onClick={() => setOpen(t)}
                 className={cn(
                   "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                   done ? "border-primary bg-primary text-primary-foreground" : "border-input hover:border-primary",
-                  justDone === t.id && "animate-pop",
                 )}
               >
                 {done && <Check className="size-3.5" strokeWidth={3} />}
@@ -143,6 +126,9 @@ export function TasksScreen({ me, exec }: { me: Member; exec: boolean }) {
                 {exec && <Row k="Assigned to" v={(open.assignee_id && memberById.get(open.assignee_id)?.name) || "Nobody"} />}
                 {open.notes && <Row k="Notes" v={<span className="whitespace-pre-wrap">{open.notes}</span>} />}
               </dl>
+              {open.status !== "done" && open.status !== "cancelled" && (open.assignee_id === me.id
+                ? <ReceiptStep task={open} onDone={() => setOpen(null)} />
+                : <p className="mt-6 px-4 text-sm text-muted-foreground">Only the person assigned can finish this task by adding its receipt.</p>)}
             </>
           )}
         </SheetContent>
