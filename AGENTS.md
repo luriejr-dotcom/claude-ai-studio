@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Club Ledger rules
+- Money is stored and computed as integer cents (helpers in src/lib/money.ts); never floats — avoids rounding errors.
+- Club/role access is enforced in Postgres RLS via my_club_id()/is_exec()/my_member_id() security-definer helpers; UI checks are cosmetic only.
+- Officer task edits and post-receipt delegation are blocked by the task_guard trigger, so the rule holds for any client.
+- Officer invites go through the inviteOfficer server fn (exec check, then admin invite); invitees land on /reset-password and claim_membership links them by email.
