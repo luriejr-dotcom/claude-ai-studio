@@ -18,6 +18,9 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
+        "entities/decode": path.resolve("node_modules/entities/lib/esm/decode.js"),
+        "entities/encode": path.resolve("node_modules/entities/lib/esm/encode.js"),
+        "entities/escape": path.resolve("node_modules/entities/lib/esm/escape.js"),
         "entities/lib/decode.js": path.resolve("node_modules/entities/lib/decode.js"),
         "entities/lib/encode.js": path.resolve("node_modules/entities/lib/encode.js"),
         entities: path.resolve("node_modules/entities"),
