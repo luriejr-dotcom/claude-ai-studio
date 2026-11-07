@@ -15,6 +15,13 @@
       "when": 1794079200272,
       "tag": "0001_complete_task_with_receipt",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794079815016,
+      "tag": "0002_receipt_ai_audit",
+      "breakpoints": true
     }
   ]
 }
