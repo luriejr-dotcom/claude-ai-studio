@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMe, isExecRole, meQuery } from "@/lib/club";
+import { fetchMe, isExecRole, meQuery, tasksQuery } from "@/lib/club";
 import { TasksScreen } from "@/components/club/TasksScreen";
 import { BudgetScreen } from "@/components/club/BudgetScreen";
 import { TransactionsScreen } from "@/components/club/TransactionsScreen";
 import { TeamSheet } from "@/components/club/TeamSheet";
-import { ReimbursementsScreen } from "@/components/club/Reimbursements";
+import { ReimbursementsScreen, reimbQuery } from "@/components/club/Reimbursements";
+import { AttentionDot } from "@/components/club/AttentionDot";
+import { reimbursementNeedsAttention, taskNeedsAttention } from "@/lib/attention";
 import { cn } from "@/lib/utils";
 import { DemoControls } from '@/components/club/DemoControls';
 import { LoadingRows } from '@/components/club/LoadingRows';
@@ -90,6 +92,10 @@ function Shell({ me }: { me: Me }) {
   const { dup } = Route.useSearch();
   const navigate = Route.useNavigate();
   const exec = isExecRole(me.role);
+  const { data: attentionTasks = [] } = useQuery({ ...tasksQuery, refetchInterval: 30_000 });
+  const { data: attentionRequests = [] } = useQuery({ ...reimbQuery, refetchInterval: 30_000 });
+  const tasksAttention = attentionTasks.some((task) => taskNeedsAttention(task, exec, me.id));
+  const requestsAttention = attentionRequests.some((request) => reimbursementNeedsAttention(request, exec));
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [team, setTeam] = useState(false);
@@ -165,6 +171,7 @@ function Shell({ me }: { me: Me }) {
                 )}
               >
                 {s}
+                {((s === "Tasks" && tasksAttention) || (s === "Reimbursements" && requestsAttention)) && <AttentionDot />}
               </Button>
             ))}
           </div>
@@ -175,7 +182,7 @@ function Shell({ me }: { me: Me }) {
           </div>
         </nav>
       ) : (
-        <h1 className="mb-6 text-3xl font-bold">Your tasks</h1>
+        <h1 className="mb-6 flex items-center gap-2 text-3xl font-bold">Your tasks {tasksAttention && <AttentionDot />}</h1>
       )}
 
       <div key={screen} className={dir === 1 ? "animate-slide-right" : "animate-slide-left"}>

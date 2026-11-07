@@ -16,6 +16,8 @@ import { ReceiptStep } from "./ReceiptStep";
 import { Avatar, Empty } from "./bits";
 import { cn } from "@/lib/utils";
 import { LoadingRows } from './LoadingRows';
+import { AttentionDot } from './AttentionDot';
+import { reimbursementNeedsAttention } from '@/lib/attention';
 
 export const reimbQuery = {
   queryKey: ["reimbursements"],
@@ -118,7 +120,7 @@ export function ReimbursementsScreen({ exec, clubId }: { exec: boolean; clubId: 
   return (
     <div className="space-y-4">
       <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <h2 className="text-xl font-bold">{exec ? "Reimbursements" : "My reimbursements"}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold">{exec ? "Reimbursements" : "My reimbursements"}{data.some((request) => reimbursementNeedsAttention(request, exec)) && <AttentionDot />}</h2>
         <Button className="justify-self-start sm:justify-self-end" size="sm" onClick={() => setAsking(true)}><Receipt /> Request reimbursement</Button>
       </div>
       {exec && (
