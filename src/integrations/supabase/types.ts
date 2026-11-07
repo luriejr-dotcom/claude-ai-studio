@@ -446,6 +446,16 @@ export type Database = {
     }
     Functions: {
       claim_membership: { Args: never; Returns: undefined }
+      complete_task_with_receipt: {
+        Args: {
+          _amount_cents: number
+          _merchant: string
+          _purchase_date: string
+          _receipt_path: string
+          _task_id: string
+        }
+        Returns: string
+      }
       create_club: {
         Args: { _club_name: string; _name: string }
         Returns: string
