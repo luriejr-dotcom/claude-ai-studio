@@ -12,6 +12,7 @@ import { TasksScreen } from "@/components/club/TasksScreen";
 import { BudgetScreen } from "@/components/club/BudgetScreen";
 import { TransactionsScreen } from "@/components/club/TransactionsScreen";
 import { TeamSheet } from "@/components/club/TeamSheet";
+import { ReimbursementsScreen } from "@/components/club/Reimbursements";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/app")({
   component: AppPage,
 });
 
-const SCREENS = ["Tasks", "Budget", "Transactions"] as const;
+const SCREENS = ["Tasks", "Budget", "Transactions", "Reimbursements"] as const;
 
 function AppPage() {
   const { data: me, isLoading } = useQuery(meQuery);
@@ -112,6 +113,10 @@ function Shell({ me }: { me: Me }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [exec, idx, go]);
 
+  useEffect(() => {
+    if (exec) void supabase.rpc("flag_stale_reimbursements");
+  }, [exec]);
+
   const clubName = (me.clubs as { name: string } | null)?.name ?? "Your club";
   const screen = exec ? SCREENS[idx] : "Tasks";
 
@@ -167,8 +172,10 @@ function Shell({ me }: { me: Me }) {
       )}
 
       <div key={screen} className={dir === 1 ? "animate-slide-right" : "animate-slide-left"}>
+        {screen === "Reimbursements" && <ReimbursementsScreen exec clubId={me.club_id} />}
         {screen === "Tasks" && <TasksScreen me={me} exec={exec} dupId={dup} onDupUsed={() => navigate({ search: { dup: undefined }, replace: true })} />}
-        {screen === "Budget" && <BudgetScreen />}
+        {screen === "Tasks" && !exec && <div className="mt-8"><ReimbursementsScreen exec={false} clubId={me.club_id} /></div>}
+        {screen === "Budget" && <BudgetScreen onOpenReimbursements={() => go(3)} />}
         {screen === "Transactions" && <TransactionsScreen />}
       </div>
 
