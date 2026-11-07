@@ -37,6 +37,7 @@ use the editor.
 - Club/role access is enforced in Postgres RLS via my_club_id()/is_exec()/my_member_id() security-definer helpers; UI checks are cosmetic only.
 - task_guard trigger locks done/cancelled tasks, allows cancel only for execs, and blocks officer detail edits and post-receipt delegation, so rules hold for any client.
 - Officer invites go through the inviteOfficer server fn (exec check, then admin invite); invitees land on /reset-password and claim_membership links them by email.
+- Demo/reviewer accounts are created through the auth sign-up endpoint and then confirmed in the database; rows inserted straight into the accounts table are rejected at sign-in because the endpoint sets fields login depends on.
 
 ## Receipts
 - Receipt reading runs in the readReceipt server fn (src/lib/receipt.functions.ts), not an edge function; AI output is re-validated in code (receipt-check.ts) and failures fall back to manual entry so the app works without AI.
