@@ -359,14 +359,21 @@ export type Database = {
       transactions: {
         Row: {
           ai_corrected: boolean
+          ai_date: string | null
+          ai_merchant: string | null
+          ai_note: string
+          ai_total_cents: number | null
           amount_cents: number
           category_id: string | null
           club_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
           id: string
           member_id: string | null
           merchant: string
           purchase_date: string
+          receipt_hash: string | null
           receipt_path: string | null
           semester_id: string
           source: string
@@ -374,14 +381,21 @@ export type Database = {
         }
         Insert: {
           ai_corrected?: boolean
+          ai_date?: string | null
+          ai_merchant?: string | null
+          ai_note?: string
+          ai_total_cents?: number | null
           amount_cents: number
           category_id?: string | null
           club_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           id?: string
           member_id?: string | null
           merchant?: string
           purchase_date?: string
+          receipt_hash?: string | null
           receipt_path?: string | null
           semester_id: string
           source?: string
@@ -389,14 +403,21 @@ export type Database = {
         }
         Update: {
           ai_corrected?: boolean
+          ai_date?: string | null
+          ai_merchant?: string | null
+          ai_note?: string
+          ai_total_cents?: number | null
           amount_cents?: number
           category_id?: string | null
           club_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           id?: string
           member_id?: string | null
           merchant?: string
           purchase_date?: string
+          receipt_hash?: string | null
           receipt_path?: string | null
           semester_id?: string
           source?: string
@@ -415,6 +436,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "members"
             referencedColumns: ["id"]
           },
           {
@@ -448,13 +476,18 @@ export type Database = {
       claim_membership: { Args: never; Returns: undefined }
       complete_task_with_receipt: {
         Args: {
+          _ai_date?: string
+          _ai_merchant?: string
+          _ai_note?: string
+          _ai_total_cents?: number
           _amount_cents: number
           _merchant: string
           _purchase_date: string
+          _receipt_hash?: string
           _receipt_path: string
           _task_id: string
         }
-        Returns: string
+        Returns: Json
       }
       create_club: {
         Args: { _club_name: string; _name: string }

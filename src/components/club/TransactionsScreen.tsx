@@ -109,13 +109,32 @@ export function TransactionsScreen() {
                 <Row k="Added" v={new Date(open.created_at).toLocaleString()} />
                 {open.ai_corrected && <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Sparkles className="size-3.5" /> Details read from the receipt were corrected by hand.</p>}
               </dl>
-              {open.receipt_path && <Label className="mt-6 block px-4 text-muted-foreground">Receipt photo attached</Label>}
+              {open.source === "receipt" && (
+                <div className="mt-6 space-y-2 px-4 text-sm">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">AI check</Label>
+                  {aiChecks(open).map((c) => <Row key={c.k} k={c.k} v={c.v} />)}
+                  {open.confirmed_by && <p className="text-xs text-muted-foreground">Confirmed by {mName[open.confirmed_by] ?? "—"}{open.confirmed_at && ` · ${new Date(open.confirmed_at).toLocaleString()}`}</p>}
+                  {open.ai_note && <p className="rounded-xl bg-accent/20 p-3 text-xs">{open.ai_note}</p>}
+                </div>
+              )}
             </>
           )}
         </SheetContent>
       </Sheet>
     </div>
   );
+}
+
+function verdict(ai: string | null, confirmed: string, same: boolean) {
+  if (ai == null || ai === "") return "Typed by the member";
+  return same ? "AI read it correctly" : `Fixed by the member (AI read ${ai} → confirmed ${confirmed})`;
+}
+function aiChecks(t: Txn) {
+  return [
+    { k: "Store", v: verdict(t.ai_merchant, t.merchant, (t.ai_merchant ?? "").toLowerCase() === t.merchant.toLowerCase()) },
+    { k: "Date", v: verdict(t.ai_date, t.purchase_date, t.ai_date === t.purchase_date) },
+    { k: "Total", v: verdict(t.ai_total_cents == null ? null : formatCents(t.ai_total_cents), formatCents(t.amount_cents), t.ai_total_cents === t.amount_cents) },
+  ];
 }
 
 function Row({ k, v }: { k: string; v: React.ReactNode }) {
