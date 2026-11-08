@@ -205,6 +205,7 @@ function EditBudget({ open, onOpenChange, semester, cats }: { open: boolean; onO
   const qc = useQueryClient();
   const [s, setS] = useState({ name: semester.name, start: semester.start_date, end: semester.end_date, total: (semester.total_budget_cents / 100).toFixed(2) });
   const [vals, setVals] = useState<Record<string, string>>(() => Object.fromEntries(cats.map((c) => [c.id, (c.budget_cents / 100).toFixed(2)])));
+  const [names, setNames] = useState<Record<string, string>>({});
   const [newCat, setNewCat] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -215,16 +216,21 @@ function EditBudget({ open, onOpenChange, semester, cats }: { open: boolean; onO
 
   async function save() {
     if (invalid || total === null) { toast.error("Amounts should look like 500 or 500.00"); return; }
+    if (cats.some((c) => !(names[c.id] ?? c.name).trim())) { toast.error("Each task type needs a name"); return; }
     if (sum > total) { toast.error("Task type budgets add up to more than the semester total"); return; }
     setBusy(true);
     try {
       // Lower categories first so the running total never exceeds the semester budget.
       const { error } = await supabase.from("semesters").update({ name: s.name, start_date: s.start, end_date: s.end, total_budget_cents: total }).eq("id", semester.id);
       if (error) throw error;
-      const order = cats.map((c, i) => ({ c, v: catCents[i]! })).sort((a, b) => (a.v - a.c.budget_cents) - (b.v - b.c.budget_cents));
+      const order = cats.flatMap((c, i) => {
+        const v = catCents[i];
+        return v == null ? [] : [{ c, v }];
+      }).sort((a, b) => (a.v - a.c.budget_cents) - (b.v - b.c.budget_cents));
       for (const { c, v } of order) {
-        if (v === c.budget_cents) continue;
-        const { error: e } = await supabase.from("categories").update({ budget_cents: v }).eq("id", c.id);
+        const name = (names[c.id] ?? c.name).trim();
+        if (v === c.budget_cents && name === c.name) continue;
+        const { error: e } = await supabase.from("categories").update({ name, budget_cents: v }).eq("id", c.id);
         if (e) throw e;
       }
       qc.invalidateQueries();
@@ -256,10 +262,10 @@ function EditBudget({ open, onOpenChange, semester, cats }: { open: boolean; onO
         <div className="space-y-2">
           <div className="text-sm font-semibold">Task type budgets</div>
           {cats.map((c) => (
-            <div key={c.id} className="flex items-center gap-2">
+            <div key={c.id} className="flex min-w-0 items-center gap-2">
               <CategoryIcon name={c.name} className="text-muted-foreground" />
-              <span className="flex-1 text-sm">{c.name}</span>
-              <Input aria-label={`${c.name} budget`} className="w-32" inputMode="decimal" value={vals[c.id] ?? ""} onChange={(e) => setVals({ ...vals, [c.id]: e.target.value })} />
+              <Input aria-label={`${c.name} name`} className="min-w-0 flex-1" maxLength={50} value={names[c.id] ?? c.name} onChange={(e) => setNames({ ...names, [c.id]: e.target.value })} />
+              <Input aria-label={`${c.name} budget`} className="w-24 shrink-0 sm:w-32" inputMode="decimal" value={vals[c.id] ?? ""} onChange={(e) => setVals({ ...vals, [c.id]: e.target.value })} />
             </div>
           ))}
           <div className="flex gap-2">
