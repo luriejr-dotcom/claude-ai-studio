@@ -96,7 +96,7 @@ function Shell({ me }: { me: Me }) {
   const { data: attentionRequests = [] } = useQuery({ ...reimbQuery, refetchInterval: 30_000 });
   const tasksAttention = attentionTasks.some((task) => taskNeedsAttention(task, exec, me.id));
   const requestsAttention = attentionRequests.some((request) => reimbursementNeedsAttention(request, exec));
-  const [idx, setIdx] = useState(0);
+  const [idx, setIdx] = useState(1);
   const [dir, setDir] = useState<1 | -1>(1);
   const [team, setTeam] = useState(false);
   const touch = useRef<number | null>(null);
